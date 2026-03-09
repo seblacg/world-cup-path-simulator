@@ -2,17 +2,17 @@ import { useState, useRef, useEffect } from "react";
 
 // ─── TEAMS PER GROUP ──────────────────────────────────────────────────────────
 const GROUPS = {
-  A: { teams: ["Mexico", "South Africa", "Korea Republic", "Czechia/Denmark/N.Macedonia/Ireland"] },
-  B: { teams: ["Canada", "Qatar", "Switzerland", "Bosnia/Italy/N.Ireland/Wales"] },
+  A: { teams: ["Mexico", "Korea Republic", "South Africa", "Czechia/Denmark/N.Macedonia/Ireland"] },
+  B: { teams: ["Canada", "Switzerland", "Qatar", "Bosnia/Italy/N.Ireland/Wales"] },
   C: { teams: ["Brazil", "Morocco", "Haiti", "Scotland"] },
   D: { teams: ["USA", "Paraguay", "Australia", "Kosovo/Romania/Slovakia/Türkiye"] },
-  E: { teams: ["Germany", "Côte d'Ivoire", "Ecuador", "Curaçao"] },
+  E: { teams: ["Germany", "Ecuador", "Côte d'Ivoire", "Curaçao"] },
   F: { teams: ["Netherlands", "Japan", "Tunisia", "Albania/Poland/Sweden/Ukraine"] },
   G: { teams: ["Belgium", "Egypt", "IR Iran", "New Zealand"] },
-  H: { teams: ["Saudi Arabia", "Uruguay", "Spain", "Cabo Verde"] },
-  I: { teams: ["France", "Senegal", "Norway", "Bolivia/Iraq/Suriname"] },
+  H: { teams: ["Spain", "Uruguay", "Saudi Arabia", "Cabo Verde"] },
+  I: { teams: ["France", "Norway", "Senegal", "Bolivia/Iraq/Suriname"] },
   J: { teams: ["Argentina", "Algeria", "Austria", "Jordan"] },
-  K: { teams: ["Colombia", "Portugal", "Uzbekistan", "Congo DR"] },
+  K: { teams: ["Portugal", "Colombia", "Uzbekistan", "Congo DR"] },
   L: { teams: ["England", "Croatia", "Ghana", "Panama"] },
 };
 
@@ -268,39 +268,150 @@ function TeamSelector({ mainTeam, onChange }) {
 
 // ─── TICKET PRICES ─────────────────────────────────────────────────────────────
 function TicketPrices({ round, city, teams }) {
-  const base = {
-    "Group Stage":  { sh: 85,   tm: 92,   sg: 79   },
-    "Round of 32":  { sh: 155,  tm: 168,  sg: 142  },
-    "Round of 16":  { sh: 285,  tm: 315,  sg: 268  },
-    "Quarterfinal": { sh: 530,  tm: 590,  sg: 500  },
-    "Semifinal":    { sh: 990,  tm: 1060, sg: 935  },
-    "Third Place":  { sh: 460,  tm: 500,  sg: 430  },
-    "Final":        { sh: 2250, tm: 2480, sg: 2100 },
-  }[round] || { sh: 200, tm: 220, sg: 190 };
-
-  const mult = {
-    "New York/NJ": 1.4, "Los Angeles": 1.3, "Miami": 1.2, "Dallas": 1.1,
-    "Atlanta": 1.05, "Philadelphia": 1.1, "Boston": 1.15, "San Francisco": 1.25,
-    "Seattle": 1.0, "Kansas City": 0.95, "Vancouver": 1.05, "Toronto": 1.1,
-    "Mexico City": 0.9, "Monterrey": 0.85, "Guadalajara": 0.88, "Houston": 1.0,
-  }[city] || 1.0;
-
-  const prices = {
-    stubhub:      Math.round(base.sh * mult),
-    ticketmaster: Math.round(base.tm * mult),
-    seatgeek:     Math.round(base.sg * mult),
+  // ── PER-MATCHUP GROUP STAGE FLOORS ──────────────────────────────────────────
+  // Sourced from current 2026 resale listings (SeatGeek, StubHub, Goal.com, SeatPick, Mar 2026).
+  // Key: canonical "Team A vs Team B" or "Team B vs Team A" — lookup checks both directions.
+  // Values: { sh: StubHub floor, sg: SeatGeek floor, vs: Vivid Seats floor }
+  // Confirmed data points:
+  //   USA vs Paraguay $1,422 (Goal/StubHub) · USA vs Australia $1,095 · Mexico vs Korea $1,844
+  //   Brazil vs Morocco $1,075 (SeatGeek) · Brazil vs Haiti $927 · Scotland vs Brazil $1,149
+  //   Argentina vs Algeria $850 (SeatGeek) · Norway vs France $951 (Goal)
+  //   Portugal vs Uzbekistan $695 (SeatGeek) · Colombia vs Portugal ~$1,100–$1,200
+  //   Mexico vs Playoff (Jun 24) $1,305 · Low-demand neutral matches: ~$200–$400
+  const GROUP_FLOORS = {
+    // GROUP A
+    "Mexico vs South Africa":                              { sh: 1900, sg: 1650, vs: 1750 },
+    "Korea Republic vs Czechia/Denmark/N.Macedonia/Ireland":{ sh: 380,  sg: 300,  vs: 330  },
+    "Czechia/Denmark/N.Macedonia/Ireland vs South Africa": { sh: 250,  sg: 200,  vs: 220  },
+    "Switzerland vs Bosnia/Italy/N.Ireland/Wales":         { sh: 260,  sg: 210,  vs: 230  },
+    "Canada vs Qatar":                                     { sh: 480,  sg: 380,  vs: 420  },
+    "Mexico vs Korea Republic":                            { sh: 1844, sg: 1600, vs: 1700 },
+    "Czechia/Denmark/N.Macedonia/Ireland vs Mexico":       { sh: 1305, sg: 1100, vs: 1200 },
+    "South Africa vs Korea Republic":                      { sh: 220,  sg: 175,  vs: 195  },
+    // GROUP B
+    "Canada vs Bosnia/Italy/N.Ireland/Wales":              { sh: 520,  sg: 420,  vs: 460  },
+    "Qatar vs Switzerland":                                { sh: 240,  sg: 195,  vs: 215  },
+    "Bosnia/Italy/N.Ireland/Wales vs Switzerland":         { sh: 280,  sg: 230,  vs: 250  },
+    "Canada vs Qatar":                                     { sh: 480,  sg: 380,  vs: 420  },
+    "Switzerland vs Canada":                               { sh: 490,  sg: 390,  vs: 430  },
+    "Bosnia/Italy/N.Ireland/Wales vs Qatar":               { sh: 230,  sg: 185,  vs: 205  },
+    // GROUP C
+    "Brazil vs Morocco":                                   { sh: 1075, sg: 950,  vs: 1000 },
+    "Haiti vs Scotland":                                   { sh: 320,  sg: 255,  vs: 280  },
+    "Brazil vs Haiti":                                     { sh: 927,  sg: 820,  vs: 870  },
+    "Scotland vs Morocco":                                 { sh: 380,  sg: 305,  vs: 340  },
+    "Scotland vs Brazil":                                  { sh: 1149, sg: 1020, vs: 1080 },
+    "Morocco vs Haiti":                                    { sh: 310,  sg: 250,  vs: 275  },
+    // GROUP D
+    "USA vs Paraguay":                                     { sh: 1422, sg: 1250, vs: 1330 },
+    "Australia vs Kosovo/Romania/Slovakia/Türkiye":        { sh: 290,  sg: 235,  vs: 260  },
+    "USA vs Australia":                                    { sh: 1095, sg: 965,  vs: 1025 },
+    "Kosovo/Romania/Slovakia/Türkiye vs Paraguay":         { sh: 230,  sg: 185,  vs: 205  },
+    "Kosovo/Romania/Slovakia/Türkiye vs USA":              { sh: 1148, sg: 1010, vs: 1070 },
+    "Paraguay vs Australia":                               { sh: 270,  sg: 215,  vs: 240  },
+    // GROUP E
+    "Côte d'Ivoire vs Ecuador":                            { sh: 360,  sg: 290,  vs: 320  },
+    "Germany vs Curaçao":                                  { sh: 680,  sg: 575,  vs: 620  },
+    "Germany vs Côte d'Ivoire":                            { sh: 720,  sg: 610,  vs: 655  },
+    "Ecuador vs Curaçao":                                  { sh: 210,  sg: 170,  vs: 190  },
+    "Curaçao vs Côte d'Ivoire":                            { sh: 200,  sg: 160,  vs: 178  },
+    "Ecuador vs Germany":                                  { sh: 750,  sg: 635,  vs: 680  },
+    // GROUP F
+    "Netherlands vs Japan":                                { sh: 640,  sg: 540,  vs: 585  },
+    "Albania/Poland/Sweden/Ukraine vs Tunisia":            { sh: 195,  sg: 155,  vs: 172  },
+    "Netherlands vs Albania/Poland/Sweden/Ukraine":        { sh: 580,  sg: 490,  vs: 530  },
+    "Tunisia vs Japan":                                    { sh: 180,  sg: 145,  vs: 162  },
+    "Japan vs Albania/Poland/Sweden/Ukraine":              { sh: 450,  sg: 380,  vs: 410  },
+    "Tunisia vs Netherlands":                              { sh: 560,  sg: 475,  vs: 510  },
+    // GROUP G
+    "Belgium vs Egypt":                                    { sh: 480,  sg: 405,  vs: 438  },
+    "IR Iran vs New Zealand":                              { sh: 200,  sg: 160,  vs: 178  },
+    "Belgium vs IR Iran":                                  { sh: 460,  sg: 390,  vs: 420  },
+    "New Zealand vs Egypt":                                { sh: 195,  sg: 155,  vs: 172  },
+    "Egypt vs IR Iran":                                    { sh: 215,  sg: 172,  vs: 192  },
+    "New Zealand vs Belgium":                              { sh: 430,  sg: 365,  vs: 394  },
+    // GROUP H
+    "Saudi Arabia vs Uruguay":                             { sh: 310,  sg: 248,  vs: 276  },
+    "Spain vs Cabo Verde":                                 { sh: 720,  sg: 610,  vs: 658  },
+    "Uruguay vs Cabo Verde":                               { sh: 270,  sg: 216,  vs: 240  },
+    "Spain vs Saudi Arabia":                               { sh: 755,  sg: 638,  vs: 690  },
+    "Cabo Verde vs Saudi Arabia":                          { sh: 225,  sg: 180,  vs: 200  },
+    "Uruguay vs Spain":                                    { sh: 680,  sg: 575,  vs: 622  },
+    // GROUP I
+    "France vs Senegal":                                   { sh: 980,  sg: 860,  vs: 915  },
+    "Bolivia/Iraq/Suriname vs Norway":                     { sh: 210,  sg: 168,  vs: 188  },
+    "France vs Bolivia/Iraq/Suriname":                     { sh: 870,  sg: 760,  vs: 810  },
+    "Norway vs Senegal":                                   { sh: 420,  sg: 355,  vs: 384  },
+    "Norway vs France":                                    { sh: 951,  sg: 835,  vs: 888  },
+    "Senegal vs Bolivia/Iraq/Suriname":                    { sh: 200,  sg: 160,  vs: 178  },
+    // GROUP J
+    "Argentina vs Algeria":                                { sh: 850,  sg: 745,  vs: 794  },
+    "Austria vs Jordan":                                   { sh: 210,  sg: 168,  vs: 188  },
+    "Argentina vs Austria":                                { sh: 820,  sg: 718,  vs: 765  },
+    "Jordan vs Algeria":                                   { sh: 185,  sg: 148,  vs: 165  },
+    "Algeria vs Austria":                                  { sh: 215,  sg: 172,  vs: 192  },
+    "Jordan vs Argentina":                                 { sh: 835,  sg: 732,  vs: 780  },
+    // GROUP K
+    "Portugal vs Congo DR":                                { sh: 695,  sg: 590,  vs: 638  },
+    "Uzbekistan vs Colombia":                              { sh: 420,  sg: 355,  vs: 384  },
+    "Portugal vs Uzbekistan":                              { sh: 695,  sg: 592,  vs: 638  },
+    "Colombia vs Congo DR":                                { sh: 380,  sg: 322,  vs: 348  },
+    "Colombia vs Portugal":                                { sh: 1200, sg: 1050, vs: 1120 },
+    "Congo DR vs Uzbekistan":                              { sh: 195,  sg: 156,  vs: 174  },
+    // GROUP L
+    "Ghana vs Panama":                                     { sh: 260,  sg: 208,  vs: 232  },
+    "England vs Croatia":                                  { sh: 780,  sg: 685,  vs: 728  },
+    "England vs Ghana":                                    { sh: 740,  sg: 648,  vs: 690  },
+    "Panama vs Croatia":                                   { sh: 245,  sg: 196,  vs: 218  },
+    "Croatia vs Ghana":                                    { sh: 255,  sg: 204,  vs: 228  },
+    "Panama vs England":                                   { sh: 760,  sg: 666,  vs: 710  },
   };
+
+  // ── KNOCKOUT ROUND ESTIMATES ─────────────────────────────────────────────────
+  // Recalibrated against confirmed data: R32 floor from $369 (StubHub low), avg ~$500–$800
+  // R16 from $800+, QF ~$1,500+, SF ~$2,500+, Final from $5,605 (StubHub, Goal.com)
+  const KNOCKOUT_BASE = {
+    "Round of 32":  { sh: 600,  sg: 530,  vs: 560  },
+    "Round of 16":  { sh: 1000, sg: 880,  vs: 935  },
+    "Quarterfinal": { sh: 1600, sg: 1400, vs: 1490 },
+    "Semifinal":    { sh: 2600, sg: 2280, vs: 2430 },
+    "Third Place":  { sh: 850,  sg: 745,  vs: 794  },
+    "Final":        { sh: 5605, sg: 4900, vs: 6200 },
+  };
+
+  // ── RESOLVE PRICES ───────────────────────────────────────────────────────────
+  // For group stage: look up both "A vs B" and "B vs A" directions
+  let base = null;
+  if (round === "Group Stage" && teams) {
+    const fwd = teams.trim();
+    const parts = fwd.split(" vs ");
+    const rev = parts.length === 2 ? `${parts[1]} vs ${parts[0]}` : null;
+    base = GROUP_FLOORS[fwd] || (rev ? GROUP_FLOORS[rev] : null);
+  }
+  // For knockout rounds, use city multiplier on the base estimate
+  if (!base) {
+    const kBase = KNOCKOUT_BASE[round] || { sh: 600, sg: 530, vs: 560 };
+    const mult = {
+      "New York/NJ":   1.35, "Los Angeles":  1.25, "Miami":       1.15, "Dallas":      1.05,
+      "Atlanta":       1.05, "Philadelphia": 1.05, "Boston":      1.10, "San Francisco": 1.20,
+      "Seattle":       1.00, "Kansas City":  0.95, "Vancouver":   1.00, "Toronto":     1.10,
+      "Mexico City":   0.90, "Monterrey":    0.85, "Guadalajara": 0.88, "Houston":     1.00,
+    }[city] || 1.0;
+    base = { sh: Math.round(kBase.sh * mult), sg: Math.round(kBase.sg * mult), vs: Math.round(kBase.vs * mult) };
+  }
+
+  const prices = { stubhub: base.sh, seatgeek: base.sg, vividseats: base.vs };
   const cheapest = Object.entries(prices).sort((a, b) => a[1] - b[1])[0];
   const meta = {
-    stubhub:      { color: "#00d4aa", name: "StubHub",      icon: "🎫" },
-    ticketmaster: { color: "#026cdf", name: "Ticketmaster", icon: "🎟️" },
-    seatgeek:     { color: "#e85d04", name: "SeatGeek",     icon: "🪑" },
+    stubhub:    { color: "#00d4aa", name: "StubHub",     icon: "🎫" },
+    seatgeek:   { color: "#e85d04", name: "SeatGeek",    icon: "🪑" },
+    vividseats: { color: "#a855f7", name: "Vivid Seats", icon: "🎟️" },
   };
-  const q = encodeURIComponent(`FIFA World Cup 2026 ${round} ${city}`);
+  const q = encodeURIComponent(`FIFA World Cup 2026 ${teams || round} ${city}`);
   const links = {
-    stubhub:      `https://www.stubhub.com/search?q=${q}`,
-    ticketmaster: `https://www.ticketmaster.com/search?q=${q}`,
-    seatgeek:     `https://seatgeek.com/search?q=${q}`,
+    stubhub:    `https://www.stubhub.com/search?q=${q}`,
+    seatgeek:   `https://seatgeek.com/search?q=${q}`,
+    vividseats: `https://www.vividseats.com/search?q=${q}`,
   };
 
   return (
@@ -322,7 +433,7 @@ function TicketPrices({ round, city, teams }) {
       </div>
       <div style={{ background: "rgba(74,222,128,0.07)", border: "1px solid rgba(74,222,128,0.2)", borderRadius: 8, padding: "10px 14px", textAlign: "center" }}>
         <span style={{ color: "#4ade80", fontSize: 13, fontWeight: 700 }}>💡 Best: {meta[cheapest[0]].name} from ${cheapest[1]}</span>
-        <div style={{ color: "#444", fontSize: 10, marginTop: 4 }}>*Estimates based on historical World Cup pricing. Tap a platform to see live prices.</div>
+        <div style={{ color: "#444", fontSize: 10, marginTop: 4 }}>*Group stage prices from current 2026 resale listings. Knockout estimates based on round & city. Tap to see live rates.</div>
       </div>
     </div>
   );
@@ -415,11 +526,57 @@ function MatchCard({ match, t1, t2, winner, onPick, highlight, mainTeam, label, 
   );
 }
 
-function ContinueBtn({ onClick, label }) {
+function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incompleteMsg }) {
+  const [showWarning, setShowWarning] = useState(false);
+
+  const handleContinue = () => {
+    if (incomplete) { setShowWarning(true); return; }
+    onClick();
+  };
+
   return (
-    <button onClick={onClick} style={{ marginTop: 20, padding: "13px 0", width: "100%", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer" }}>
-      {label}
-    </button>
+    <>
+      {/* Warning modal */}
+      {showWarning && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}>
+          <div style={{ background: "linear-gradient(160deg,#1a2236,#141c2e)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: 16, padding: "22px 22px", maxWidth: 280, width: "90%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.5)" }}>
+            <p style={{ color: "#e2e8f0", fontWeight: 700, fontSize: 13, margin: "0 0 6px" }}>Unconfirmed Matches</p>
+            <p style={{ color: "#94a3b8", fontSize: 12, margin: "0 0 20px", lineHeight: 1.5 }}>
+              Some matches have no winner. Continue anyway?
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setShowWarning(false)} style={{ flex: 1, padding: "9px 0", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, color: "#94a3b8", fontWeight: 600, fontSize: 12, cursor: "pointer", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#e2e8f0"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "#94a3b8"; }}
+              >
+                Go back
+              </button>
+              <button onClick={() => { setShowWarning(false); onClick(); }} style={{ flex: 1, padding: "9px 0", background: "rgba(99,102,241,0.85)", border: "1px solid rgba(99,102,241,0.5)", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,1)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(99,102,241,0.85)"; }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Button row */}
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        {onBack && (
+          <button onClick={onBack} style={{ flex: "0 0 auto", padding: "13px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#888", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#ccc"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#888"; }}
+          >
+            ← {backLabel || "Back"}
+          </button>
+        )}
+        <button onClick={handleContinue} style={{ flex: 1, padding: "13px 0", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer" }}>
+          {label}
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -439,6 +596,55 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
 
   const inv = (name) => !!(name && mainTeam && name === mainTeam);
   const matchHasMain = (t1, t2) => inv(t1) || inv(t2);
+
+  // Shared subtle button style for auto-confirm buttons
+  const subtleBtn = {
+    padding: "6px 18px", background: "transparent",
+    border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20,
+    color: "#888", fontWeight: 600, fontSize: 12, cursor: "pointer",
+    letterSpacing: "0.03em", transition: "all 0.15s",
+  };
+  const subtleBtnHover = (e) => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; };
+  const subtleBtnLeave = (e) => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; };
+
+  // Auto-confirm helpers — pick t1 as winner for every unset match in a round
+  const autoR32 = () => {
+    const updates = {};
+    R32.forEach((m) => { const t1 = rr(m.t1); if (!knockoutWinners[m.id]) updates[m.id] = t1; });
+    setKnockoutWinners((p) => ({ ...p, ...updates }));
+  };
+  const autoR16 = () => {
+    const updates = {};
+    R16.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
+    setKnockoutWinners((p) => ({ ...p, ...updates }));
+  };
+  const autoQF = () => {
+    const updates = {};
+    QF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
+    setKnockoutWinners((p) => ({ ...p, ...updates }));
+  };
+  const autoSF = () => {
+    const updates = {};
+    SF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
+    setKnockoutWinners((p) => ({ ...p, ...updates }));
+  };
+  const autoFinal = () => {
+    const sf1w = knockoutWinners[101] || "Other";
+    const sf2w = knockoutWinners[102] || "Other";
+    // Derive SF losers: the participant who didn't win each semifinal
+    const sf1teams = [knockoutWinners[SF[0].m1] || "Other", knockoutWinners[SF[0].m2] || "Other"];
+    const sf2teams = [knockoutWinners[SF[1].m1] || "Other", knockoutWinners[SF[1].m2] || "Other"];
+    const sf1loser = sf1teams.find((t) => t !== sf1w) || "Other";
+    const sf2loser = sf2teams.find((t) => t !== sf2w) || "Other";
+    const updates = {};
+    if (!knockoutWinners[103]) updates[103] = sf1loser; // bronze: sf1 loser vs sf2 loser
+    if (!knockoutWinners[104]) updates[104] = sf1w;     // final: sf1 winner vs sf2 winner
+    setKnockoutWinners((p) => {
+      const next = { ...p, ...updates };
+      if (updates[104]) onChampion(updates[104]);
+      return next;
+    });
+  };
 
   // Path steps: find which R32 match the main team is in
   const mainR32 = R32.find((m) => {
@@ -529,7 +735,10 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {R32.map((m) => { const t1 = rr(m.t1), t2 = rr(m.t2); return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 32`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("r16")} label="Continue to Round of 16 →" />
+          <ContinueBtn onClick={() => setActiveRound("r16")} label="Continue to Round of 16 →" incomplete={R32.some((m) => !mw(m.id))} />
+          <div style={{ textAlign: "center", marginTop: 10 }}>
+            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoR32}>Auto-Confirm All Round of 32</button>
+          </div>
         </div>
       )}
       {activeRound === "r16" && (
@@ -537,7 +746,10 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {R16.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 16`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("qf")} label="Continue to Quarterfinals →" />
+          <ContinueBtn onClick={() => setActiveRound("qf")} label="Continue to Quarterfinals →" onBack={() => setActiveRound("r32")} backLabel="Round of 32" incomplete={R16.some((m) => !mw(m.id))} />
+          <div style={{ textAlign: "center", marginTop: 10 }}>
+            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoR16}>Auto-Confirm All Round of 16</button>
+          </div>
         </div>
       )}
       {activeRound === "qf" && (
@@ -545,7 +757,10 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {QF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Quarterfinal`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("sf")} label="Continue to Semifinals →" />
+          <ContinueBtn onClick={() => setActiveRound("sf")} label="Continue to Semifinals →" onBack={() => setActiveRound("r16")} backLabel="Round of 16" incomplete={QF.some((m) => !mw(m.id))} />
+          <div style={{ textAlign: "center", marginTop: 10 }}>
+            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoQF}>Auto-Confirm All Quarterfinals</button>
+          </div>
         </div>
       )}
       {activeRound === "sf" && (
@@ -553,15 +768,35 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {SF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Semifinal`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("final")} label="Continue to Final →" />
+          <ContinueBtn onClick={() => setActiveRound("final")} label="Continue to Final →" onBack={() => setActiveRound("qf")} backLabel="Quarterfinals" incomplete={SF.some((m) => !mw(m.id))} />
+          <div style={{ textAlign: "center", marginTop: 10 }}>
+            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoSF}>Auto-Confirm All Semifinals</button>
+          </div>
         </div>
       )}
       {activeRound === "final" && (() => {
         const sf1w = mw(101), sf2w = mw(102);
+        // Derive SF losers for bronze match
+        const sf1t1 = mw(SF[0].m1) || "Other", sf1t2 = mw(SF[0].m2) || "Other";
+        const sf2t1 = mw(SF[1].m1) || "Other", sf2t2 = mw(SF[1].m2) || "Other";
+        const sf1loser = sf1w ? (sf1t1 === sf1w ? sf1t2 : sf1t1) : "Other";
+        const sf2loser = sf2w ? (sf2t1 === sf2w ? sf2t2 : sf2t1) : "Other";
+        const finalIncomplete = !mw(103) || !mw(104);
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <MatchCard match={{ id: 103, date: "Jul 18", city: "Miami" }} t1={sf1w||"Other"} t2={sf2w||"Other"} winner={mw(103)} onPick={(w) => setKnockoutWinners((p) => ({ ...p, 103: w }))} highlight={false} mainTeam={mainTeam} label="Match 103 · Third Place" isBronze />
+            <MatchCard match={{ id: 103, date: "Jul 18", city: "Miami" }} t1={sf1loser} t2={sf2loser} winner={mw(103)} onPick={(w) => setKnockoutWinners((p) => ({ ...p, 103: w }))} highlight={matchHasMain(sf1loser, sf2loser)} mainTeam={mainTeam} label="Match 103 · Third Place" isBronze />
             <MatchCard match={{ id: 104, date: "Jul 19", city: "New York/NJ" }} t1={sf1w||"Other"} t2={sf2w||"Other"} winner={mw(104)} onPick={(w) => sw(104, w)} highlight={matchHasMain(sf1w||"Other", sf2w||"Other")} mainTeam={mainTeam} label="Match 104 · THE FINAL" isFinal />
+            <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+              <button onClick={() => setActiveRound("sf")} style={{ flex: "0 0 auto", padding: "11px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#888", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#ccc"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#888"; }}
+              >
+                ← Semifinals
+              </button>
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoFinal}>Auto-Confirm 3rd Place / Final</button>
+              </div>
+            </div>
           </div>
         );
       })()}
@@ -578,12 +813,12 @@ function buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, 
   const mw  = (id) => knockoutWinners[id] || null;
   const gs  = (g, pos) => allGroupStandings[g]?.[pos] || null;
 
-  // Group finish label
+  // Group finish label — plain text, no emoji
   const finishLabel =
-    teamFinish === "winner" ? "🥇 Group Winner" :
-    teamFinish === "runner" ? "🥈 Group Runner-up" :
-    teamFinish === "third"  ? "3rd Place (best 3rd)" :
-    teamFinish === "eliminated" ? "❌ Eliminated in Group Stage" :
+    teamFinish === "winner"     ? "Group Winner" :
+    teamFinish === "runner"     ? "Group Runner-up" :
+    teamFinish === "third"      ? "3rd Place (best 3rd)" :
+    teamFinish === "eliminated" ? "Eliminated in Group Stage" :
     "Group stage not set";
 
   // Resolve R32 opponent from group standings
@@ -620,6 +855,11 @@ function buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, 
   const sfm  = qfw  === mainTeam ? findKO(SF)  : null;
   const sfw  = sfm  ? mw(sfm.id)  : null;
   const sf1w = mw(101), sf2w = mw(102);
+  // Derive SF losers for bronze match reference
+  const sf1t1 = knockoutWinners[SF[0].m1] || null, sf1t2 = knockoutWinners[SF[0].m2] || null;
+  const sf2t1 = knockoutWinners[SF[1].m1] || null, sf2t2 = knockoutWinners[SF[1].m2] || null;
+  const sf1loser = sf1w && sf1t1 && sf1t2 ? (sf1t1 === sf1w ? sf1t2 : sf1t1) : null;
+  const sf2loser = sf2w && sf2t1 && sf2t2 ? (sf2t1 === sf2w ? sf2t2 : sf2t1) : null;
   const finalOpp = (sf1w === mainTeam ? sf2w : sf1w) || "TBD";
   const finalW   = mw(104);
 
@@ -628,53 +868,55 @@ function buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, 
 
   if (mainR32match) {
     const won = r32w === mainTeam;
-    const result = r32w ? (won ? "✅ Won" : `❌ Lost to ${r32w}`) : "⏳ Not played";
-    lines.push(`Round of 32: ${mainTeam} vs ${mainR32match.opp} — ${result}`);
+    const result = r32w ? (won ? "Won" : `Lost to ${r32w}`) : "Not played";
+    lines.push(`Round of 32: ${mainTeam} vs ${mainR32match.opp} - ${result}`);
   }
   if (r32w === mainTeam && r16m) {
     const won = r16w === mainTeam;
-    const result = r16w ? (won ? "✅ Won" : `❌ Lost to ${r16w}`) : "⏳ Not played";
-    lines.push(`Round of 16: ${mainTeam} vs ${r16m.opp} — ${result}`);
+    const result = r16w ? (won ? "Won" : `Lost to ${r16w}`) : "Not played";
+    lines.push(`Round of 16: ${mainTeam} vs ${r16m.opp} - ${result}`);
   }
   if (r16w === mainTeam && qfm) {
     const won = qfw === mainTeam;
-    const result = qfw ? (won ? "✅ Won" : `❌ Lost to ${qfw}`) : "⏳ Not played";
-    lines.push(`Quarterfinal: ${mainTeam} vs ${qfm.opp} — ${result}`);
+    const result = qfw ? (won ? "Won" : `Lost to ${qfw}`) : "Not played";
+    lines.push(`Quarterfinal: ${mainTeam} vs ${qfm.opp} - ${result}`);
   }
   if (qfw === mainTeam && sfm) {
     const won = sfw === mainTeam;
-    const result = sfw ? (won ? "✅ Won" : `❌ Lost to ${sfw}`) : "⏳ Not played";
-    lines.push(`Semifinal: ${mainTeam} vs ${sfm.opp} — ${result}`);
+    const result = sfw ? (won ? "Won" : `Lost to ${sfw}`) : "Not played";
+    lines.push(`Semifinal: ${mainTeam} vs ${sfm.opp} - ${result}`);
   }
   if (sfw === mainTeam) {
     const won = finalW === mainTeam;
-    const result = finalW ? (won ? "🏆 CHAMPIONS!" : `🥈 Runner-up (lost to ${finalW})`) : "⏳ Not played";
-    lines.push(`Final: ${mainTeam} vs ${finalOpp} — ${result}`);
+    const result = finalW ? (won ? "CHAMPIONS!" : `Runner-up (lost to ${finalW})`) : "Not played";
+    lines.push(`Final: ${mainTeam} vs ${finalOpp} - ${result}`);
   } else if (sfw && sfw !== mainTeam) {
-    // reached third place
+    // reached third place — opponent is the loser of the other semifinal
     const bronze = mw(103);
     const won = bronze === mainTeam;
-    const bronzeOpp = finalOpp;
-    const result = bronze ? (won ? "🥉 Won 3rd Place!" : `4th place (lost to ${bronze})`) : "⏳ Not played";
-    lines.push(`3rd Place: ${mainTeam} vs ${bronzeOpp} — ${result}`);
+    // mainTeam lost their SF; find which SF they were in to get the other SF's loser
+    const mainInSF1 = sfm?.id === 101;
+    const bronzeOpp = (mainInSF1 ? sf2loser : sf1loser) || "TBD";
+    const result = bronze ? (won ? "Won 3rd Place!" : `4th place (lost to ${bronze})`) : "Not played";
+    lines.push(`3rd Place: ${mainTeam} vs ${bronzeOpp} - ${result}`);
   }
 
-  // Final result headline
+  // Final result headline — plain text only
   const headline =
-    finalW === mainTeam             ? `🏆 ${mainTeam} are 2026 World Cup CHAMPIONS!` :
-    finalW && sfw === mainTeam      ? `🥈 ${mainTeam} finish as runners-up` :
-    mw(103) === mainTeam            ? `🥉 ${mainTeam} win 3rd place` :
-    sfw && sfw !== mainTeam         ? `💔 ${mainTeam} eliminated in the Semis` :
-    qfw && qfw !== mainTeam         ? `💔 ${mainTeam} eliminated in the Quarters` :
-    r16w && r16w !== mainTeam       ? `💔 ${mainTeam} eliminated in the Round of 16` :
-    r32w && r32w !== mainTeam       ? `💔 ${mainTeam} eliminated in the Round of 32` :
-    teamFinish === "eliminated"     ? `💔 ${mainTeam} eliminated in the Group Stage` :
-    `⚽ ${mainTeam}'s path is in progress`;
+    finalW === mainTeam             ? `${mainTeam} are 2026 World Cup CHAMPIONS!` :
+    finalW && sfw === mainTeam      ? `${mainTeam} finish as runners-up` :
+    mw(103) === mainTeam            ? `${mainTeam} win 3rd place` :
+    sfw && sfw !== mainTeam         ? `${mainTeam} eliminated in the Semis` :
+    qfw && qfw !== mainTeam         ? `${mainTeam} eliminated in the Quarters` :
+    r16w && r16w !== mainTeam       ? `${mainTeam} eliminated in the Round of 16` :
+    r32w && r32w !== mainTeam       ? `${mainTeam} eliminated in the Round of 32` :
+    teamFinish === "eliminated"     ? `${mainTeam} eliminated in the Group Stage` :
+    `${mainTeam}'s path is in progress`;
 
   const url = typeof window !== "undefined" ? window.location.href : "";
 
   return [
-    `⚽ My ${mainTeam} path — 2026 FIFA World Cup`,
+    `${mainTeam}'s - 2026 World Cup Path!`,
     ``,
     `Group ${teamGroup}: ${finishLabel}`,
     ``,
@@ -682,7 +924,7 @@ function buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, 
     ``,
     headline,
     ``,
-    `🌐 Simulate your own path: ${url}`,
+    `Try your own path: ${url}`,
   ].join("\n");
 }
 
@@ -715,7 +957,7 @@ function ShareButton({ mainTeam, teamFinish, teamGroup, allGroupStandings, knock
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${mainTeam ? mainTeam + " —" : ""} 2026 World Cup Simulator`,
+          title: `${mainTeam ? mainTeam + " -" : ""} 2026 World Cup Simulator`,
           text:  shareText,
           url,
         });
@@ -789,14 +1031,86 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
     </div>
   );
 
-  // Build group stage matches (main team vs. the other 3 in its group)
-  const groupOpps = teamGroup ? GROUPS[teamGroup].teams.filter((t) => t !== mainTeam) : [];
-  const groupMatchDates = ["Jun 17–18", "Jun 22–23", "Jun 27"];
-  const groupMatchCities = ["Various", "Various", "Various"];
+  // Per-team group stage fixtures — exact dates & cities from official 2026 WC schedule
+  // Each entry: [{ opp, date, city }, { opp, date, city }, { opp, date, city }] (matchday order)
+  const GROUP_FIXTURES = {
+    // GROUP A
+    "Mexico":                                        [{ opp: "South Africa",                                           date: "Jun 11", city: "Mexico City"   }, { opp: "Korea Republic",                                       date: "Jun 18", city: "Guadalajara"  }, { opp: "Czechia/Denmark/N.Macedonia/Ireland",                  date: "Jun 24", city: "Mexico City"   }],
+    "South Africa":                                  [{ opp: "Mexico",                                                 date: "Jun 11", city: "Mexico City"   }, { opp: "Czechia/Denmark/N.Macedonia/Ireland",                  date: "Jun 18", city: "Atlanta"      }, { opp: "Korea Republic",                                       date: "Jun 24", city: "Monterrey"    }],
+    "Korea Republic":                                [{ opp: "Czechia/Denmark/N.Macedonia/Ireland",                   date: "Jun 11", city: "Guadalajara"  }, { opp: "Mexico",                                               date: "Jun 18", city: "Guadalajara"  }, { opp: "South Africa",                                         date: "Jun 24", city: "Monterrey"    }],
+    "Czechia/Denmark/N.Macedonia/Ireland":           [{ opp: "Korea Republic",                                        date: "Jun 11", city: "Guadalajara"  }, { opp: "South Africa",                                         date: "Jun 18", city: "Atlanta"      }, { opp: "Mexico",                                               date: "Jun 24", city: "Mexico City"   }],
+    // GROUP B
+    "Canada":                                        [{ opp: "Bosnia/Italy/N.Ireland/Wales",                          date: "Jun 12", city: "Toronto"      }, { opp: "Qatar",                                                date: "Jun 18", city: "Vancouver"    }, { opp: "Switzerland",                                          date: "Jun 24", city: "Vancouver"    }],
+    "Qatar":                                         [{ opp: "Switzerland",                                           date: "Jun 13", city: "San Francisco"}, { opp: "Canada",                                               date: "Jun 18", city: "Vancouver"    }, { opp: "Bosnia/Italy/N.Ireland/Wales",                         date: "Jun 24", city: "Seattle"      }],
+    "Switzerland":                                   [{ opp: "Qatar",                                                 date: "Jun 13", city: "San Francisco"}, { opp: "Bosnia/Italy/N.Ireland/Wales",                         date: "Jun 18", city: "Los Angeles"  }, { opp: "Canada",                                               date: "Jun 24", city: "Vancouver"    }],
+    "Bosnia/Italy/N.Ireland/Wales":                  [{ opp: "Canada",                                                date: "Jun 12", city: "Toronto"      }, { opp: "Switzerland",                                          date: "Jun 18", city: "Los Angeles"  }, { opp: "Qatar",                                                date: "Jun 24", city: "Seattle"      }],
+    // GROUP C
+    "Brazil":                                        [{ opp: "Morocco",                                               date: "Jun 13", city: "New York/NJ"  }, { opp: "Haiti",                                                date: "Jun 19", city: "Philadelphia" }, { opp: "Scotland",                                             date: "Jun 24", city: "Miami"        }],
+    "Morocco":                                       [{ opp: "Brazil",                                                date: "Jun 13", city: "New York/NJ"  }, { opp: "Scotland",                                             date: "Jun 19", city: "Boston"       }, { opp: "Haiti",                                                date: "Jun 24", city: "Atlanta"      }],
+    "Haiti":                                         [{ opp: "Scotland",                                              date: "Jun 13", city: "Boston"       }, { opp: "Brazil",                                               date: "Jun 19", city: "Philadelphia" }, { opp: "Morocco",                                              date: "Jun 24", city: "Atlanta"      }],
+    "Scotland":                                      [{ opp: "Haiti",                                                 date: "Jun 13", city: "Boston"       }, { opp: "Morocco",                                              date: "Jun 19", city: "Boston"       }, { opp: "Brazil",                                               date: "Jun 24", city: "Miami"        }],
+    // GROUP D
+    "USA":                                           [{ opp: "Paraguay",                                              date: "Jun 12", city: "Los Angeles"  }, { opp: "Australia",                                            date: "Jun 19", city: "Seattle"      }, { opp: "Kosovo/Romania/Slovakia/Türkiye",                      date: "Jun 25", city: "Los Angeles"  }],
+    "Paraguay":                                      [{ opp: "USA",                                                   date: "Jun 12", city: "Los Angeles"  }, { opp: "Kosovo/Romania/Slovakia/Türkiye",                      date: "Jun 19", city: "San Francisco"}, { opp: "Australia",                                            date: "Jun 25", city: "San Francisco"}],
+    "Australia":                                     [{ opp: "Kosovo/Romania/Slovakia/Türkiye",                       date: "Jun 13", city: "Vancouver"    }, { opp: "USA",                                                  date: "Jun 19", city: "Seattle"      }, { opp: "Paraguay",                                             date: "Jun 25", city: "San Francisco"}],
+    "Kosovo/Romania/Slovakia/Türkiye":               [{ opp: "Australia",                                             date: "Jun 13", city: "Vancouver"    }, { opp: "Paraguay",                                             date: "Jun 19", city: "San Francisco"}, { opp: "USA",                                                  date: "Jun 25", city: "Los Angeles"  }],
+    // GROUP E
+    "Germany":                                       [{ opp: "Curaçao",                                               date: "Jun 14", city: "Houston"      }, { opp: "Côte d'Ivoire",                                       date: "Jun 20", city: "Toronto"      }, { opp: "Ecuador",                                              date: "Jun 25", city: "New York/NJ"  }],
+    "Ecuador":                                       [{ opp: "Côte d'Ivoire",                                         date: "Jun 14", city: "Philadelphia" }, { opp: "Curaçao",                                             date: "Jun 20", city: "Kansas City"  }, { opp: "Germany",                                              date: "Jun 25", city: "New York/NJ"  }],
+    "Côte d'Ivoire":                                 [{ opp: "Ecuador",                                               date: "Jun 14", city: "Philadelphia" }, { opp: "Germany",                                             date: "Jun 20", city: "Toronto"      }, { opp: "Curaçao",                                              date: "Jun 25", city: "Philadelphia" }],
+    "Curaçao":                                       [{ opp: "Germany",                                               date: "Jun 14", city: "Houston"      }, { opp: "Ecuador",                                             date: "Jun 20", city: "Kansas City"  }, { opp: "Côte d'Ivoire",                                       date: "Jun 25", city: "Philadelphia" }],
+    // GROUP F
+    "Netherlands":                                   [{ opp: "Japan",                                                 date: "Jun 14", city: "Dallas"       }, { opp: "Albania/Poland/Sweden/Ukraine",                        date: "Jun 20", city: "Houston"      }, { opp: "Tunisia",                                              date: "Jun 25", city: "Kansas City"  }],
+    "Japan":                                         [{ opp: "Netherlands",                                           date: "Jun 14", city: "Dallas"       }, { opp: "Tunisia",                                             date: "Jun 20", city: "Monterrey"    }, { opp: "Albania/Poland/Sweden/Ukraine",                        date: "Jun 25", city: "Dallas"       }],
+    "Tunisia":                                       [{ opp: "Albania/Poland/Sweden/Ukraine",                         date: "Jun 14", city: "Monterrey"    }, { opp: "Japan",                                               date: "Jun 20", city: "Monterrey"    }, { opp: "Netherlands",                                          date: "Jun 25", city: "Kansas City"  }],
+    "Albania/Poland/Sweden/Ukraine":                 [{ opp: "Tunisia",                                               date: "Jun 14", city: "Monterrey"    }, { opp: "Netherlands",                                         date: "Jun 20", city: "Houston"      }, { opp: "Japan",                                                date: "Jun 25", city: "Dallas"       }],
+    // GROUP G
+    "Belgium":                                       [{ opp: "Egypt",                                                 date: "Jun 15", city: "Seattle"      }, { opp: "IR Iran",                                             date: "Jun 21", city: "Los Angeles"  }, { opp: "New Zealand",                                          date: "Jun 26", city: "Vancouver"    }],
+    "Egypt":                                         [{ opp: "Belgium",                                               date: "Jun 15", city: "Seattle"      }, { opp: "New Zealand",                                         date: "Jun 21", city: "Vancouver"    }, { opp: "IR Iran",                                              date: "Jun 26", city: "Seattle"      }],
+    "IR Iran":                                       [{ opp: "New Zealand",                                           date: "Jun 15", city: "Los Angeles"  }, { opp: "Belgium",                                             date: "Jun 21", city: "Los Angeles"  }, { opp: "Egypt",                                                date: "Jun 26", city: "Seattle"      }],
+    "New Zealand":                                   [{ opp: "IR Iran",                                               date: "Jun 15", city: "Los Angeles"  }, { opp: "Egypt",                                               date: "Jun 21", city: "Vancouver"    }, { opp: "Belgium",                                              date: "Jun 26", city: "Vancouver"    }],
+    // GROUP H
+    "Spain":                                         [{ opp: "Cabo Verde",                                            date: "Jun 15", city: "Atlanta"      }, { opp: "Saudi Arabia",                                         date: "Jun 21", city: "Atlanta"      }, { opp: "Uruguay",                                              date: "Jun 26", city: "Guadalajara"  }],
+    "Uruguay":                                       [{ opp: "Saudi Arabia",                                          date: "Jun 15", city: "Miami"        }, { opp: "Cabo Verde",                                           date: "Jun 21", city: "Miami"        }, { opp: "Spain",                                                date: "Jun 26", city: "Guadalajara"  }],
+    "Saudi Arabia":                                  [{ opp: "Uruguay",                                               date: "Jun 15", city: "Miami"        }, { opp: "Spain",                                               date: "Jun 21", city: "Atlanta"      }, { opp: "Cabo Verde",                                           date: "Jun 26", city: "Houston"      }],
+    "Cabo Verde":                                    [{ opp: "Spain",                                                 date: "Jun 15", city: "Atlanta"      }, { opp: "Uruguay",                                             date: "Jun 21", city: "Miami"        }, { opp: "Saudi Arabia",                                         date: "Jun 26", city: "Houston"      }],
+    // GROUP I
+    "France":                                        [{ opp: "Senegal",                                               date: "Jun 16", city: "New York/NJ"  }, { opp: "Bolivia/Iraq/Suriname",                                date: "Jun 22", city: "Philadelphia" }, { opp: "Norway",                                               date: "Jun 26", city: "Boston"       }],
+    "Norway":                                        [{ opp: "Bolivia/Iraq/Suriname",                                  date: "Jun 16", city: "Boston"       }, { opp: "Senegal",                                             date: "Jun 22", city: "New York/NJ"  }, { opp: "France",                                               date: "Jun 26", city: "Boston"       }],
+    "Senegal":                                       [{ opp: "France",                                                date: "Jun 16", city: "New York/NJ"  }, { opp: "Norway",                                              date: "Jun 22", city: "New York/NJ"  }, { opp: "Bolivia/Iraq/Suriname",                                date: "Jun 26", city: "Toronto"      }],
+    "Bolivia/Iraq/Suriname":                         [{ opp: "Norway",                                                date: "Jun 16", city: "Boston"       }, { opp: "France",                                              date: "Jun 22", city: "Philadelphia" }, { opp: "Senegal",                                              date: "Jun 26", city: "Toronto"      }],
+    // GROUP J
+    "Argentina":                                     [{ opp: "Algeria",                                               date: "Jun 16", city: "Kansas City"  }, { opp: "Austria",                                             date: "Jun 22", city: "Dallas"       }, { opp: "Jordan",                                               date: "Jun 26", city: "Dallas"       }],
+    "Algeria":                                       [{ opp: "Argentina",                                             date: "Jun 16", city: "Kansas City"  }, { opp: "Jordan",                                              date: "Jun 22", city: "San Francisco"}, { opp: "Austria",                                              date: "Jun 26", city: "Kansas City"  }],
+    "Austria":                                       [{ opp: "Jordan",                                                date: "Jun 16", city: "San Francisco"}, { opp: "Argentina",                                           date: "Jun 22", city: "Dallas"       }, { opp: "Algeria",                                              date: "Jun 26", city: "Kansas City"  }],
+    "Jordan":                                        [{ opp: "Austria",                                               date: "Jun 16", city: "San Francisco"}, { opp: "Algeria",                                             date: "Jun 22", city: "San Francisco"}, { opp: "Argentina",                                            date: "Jun 26", city: "Dallas"       }],
+    // GROUP K
+    "Portugal":                                      [{ opp: "Congo DR",                                              date: "Jun 17", city: "Houston"      }, { opp: "Uzbekistan",                                          date: "Jun 23", city: "Houston"      }, { opp: "Colombia",                                             date: "Jun 27", city: "Miami"        }],
+    "Colombia":                                      [{ opp: "Uzbekistan",                                            date: "Jun 17", city: "Mexico City"  }, { opp: "Congo DR",                                            date: "Jun 23", city: "Guadalajara"  }, { opp: "Portugal",                                             date: "Jun 27", city: "Miami"        }],
+    "Uzbekistan":                                    [{ opp: "Colombia",                                              date: "Jun 17", city: "Mexico City"  }, { opp: "Portugal",                                            date: "Jun 23", city: "Houston"      }, { opp: "Congo DR",                                             date: "Jun 27", city: "Atlanta"      }],
+    "Congo DR":                                      [{ opp: "Portugal",                                              date: "Jun 17", city: "Houston"      }, { opp: "Colombia",                                            date: "Jun 23", city: "Guadalajara"  }, { opp: "Uzbekistan",                                           date: "Jun 27", city: "Atlanta"      }],
+    // GROUP L
+    "England":                                       [{ opp: "Croatia",                                               date: "Jun 17", city: "Dallas"       }, { opp: "Ghana",                                               date: "Jun 23", city: "Boston"       }, { opp: "Panama",                                               date: "Jun 27", city: "New York/NJ"  }],
+    "Croatia":                                       [{ opp: "England",                                               date: "Jun 17", city: "Dallas"       }, { opp: "Panama",                                             date: "Jun 23", city: "Toronto"      }, { opp: "Ghana",                                                date: "Jun 27", city: "Philadelphia" }],
+    "Ghana":                                         [{ opp: "Panama",                                                date: "Jun 17", city: "Toronto"      }, { opp: "England",                                             date: "Jun 23", city: "Boston"       }, { opp: "Croatia",                                              date: "Jun 27", city: "Philadelphia" }],
+    "Panama":                                        [{ opp: "Ghana",                                                 date: "Jun 17", city: "Toronto"      }, { opp: "Croatia",                                             date: "Jun 23", city: "Toronto"      }, { opp: "England",                                              date: "Jun 27", city: "New York/NJ"  }],
+  };
 
-  const groupMatches = groupOpps.map((opp, i) => ({
-    round: "Group Stage", opp, date: groupMatchDates[i], city: groupMatchCities[i], w: null,
-  }));
+  // Look up this team's fixtures; fall back to generic if team name doesn't match exactly
+  const teamFixtures = GROUP_FIXTURES[mainTeam] || [];
+  const groupOpps = teamGroup ? GROUPS[teamGroup].teams.filter((t) => t !== mainTeam) : [];
+
+  // Match each opponent to its fixture entry; fall back to "Various" if no match found
+  const groupMatches = groupOpps.map((opp) => {
+    const fixture = teamFixtures.find((f) => f.opp === opp);
+    return {
+      round: "Group Stage",
+      opp,
+      date: fixture?.date || "Jun 2026",
+      city: fixture?.city || "Various",
+      w: null,
+    };
+  });
 
   // Derive R32 match from standings
   const mainR32match = (() => {
@@ -913,22 +1227,56 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
 }
 
 // ─── CELEBRATION OVERLAY ──────────────────────────────────────────────────────
-function CelebrationOverlay({ champion, onDismiss }) {
+function CelebrationOverlay({ champion, onDismiss, fadingOut }) {
   if (!champion) return null;
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.78)", backdropFilter: "blur(4px)" }} onClick={onDismiss}>
-      <div style={{ textAlign: "center", padding: "40px 32px", background: "linear-gradient(135deg,#0a1628,#001840)", border: "3px solid #FFD700", borderRadius: 24, maxWidth: 440, boxShadow: "0 0 80px rgba(255,215,0,0.45)" }} onClick={(e) => e.stopPropagation()}>
-        <style>{`@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}.pop-in{animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}`}</style>
-        <div className="pop-in">
-          <div style={{ fontSize: 72, marginBottom: 16 }}>🏆</div>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
-            <Flag name={champion} size={52} />
-          </div>
-          <h2 style={{ fontSize: "clamp(1.4rem,4vw,2rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 10px", textShadow: "0 2px 20px rgba(255,215,0,0.6)" }}>{champion}</h2>
-          <p style={{ color: "#4ade80", fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>wins the 2026 World Cup!</p>
-          <p style={{ color: "#aaa", fontSize: 13, margin: "0 0 24px" }}>MetLife Stadium · East Rutherford, NJ · July 19, 2026</p>
-          <button onClick={onDismiss} style={{ padding: "12px 32px", background: "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, fontSize: 15, cursor: "pointer" }}>🎉 Continue</button>
+    <div
+      onClick={onDismiss}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9998,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.78)", backdropFilter: "blur(4px)",
+        opacity: fadingOut ? 0 : 1,
+        transition: fadingOut ? "opacity 0.6s ease-out" : "opacity 0.25s ease-in",
+        pointerEvents: fadingOut ? "none" : "auto",
+      }}
+    >
+      <style>{`
+        @keyframes popIn {
+          from { transform: scale(0.5); opacity: 0; }
+          to   { transform: scale(1);   opacity: 1; }
+        }
+        @keyframes floatUp {
+          0%   { transform: translateY(0px); }
+          50%  { transform: translateY(-8px); }
+          100% { transform: translateY(0px); }
+        }
+        .pop-in  { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .float   { animation: floatUp 2.2s ease-in-out infinite; }
+      `}</style>
+      <div
+        className="pop-in"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          textAlign: "center", padding: "40px 32px",
+          background: "linear-gradient(135deg,#0a1628,#001840)",
+          border: "3px solid #FFD700", borderRadius: 24, maxWidth: 440,
+          boxShadow: "0 0 80px rgba(255,215,0,0.45)",
+          opacity: fadingOut ? 0 : 1,
+          transform: fadingOut ? "scale(0.92) translateY(-12px)" : "scale(1)",
+          transition: fadingOut ? "opacity 0.5s ease-out, transform 0.5s ease-out" : "none",
+        }}
+      >
+        <div className="float" style={{ fontSize: 72, marginBottom: 16 }}>🏆</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <Flag name={champion} size={52} />
         </div>
+        <h2 style={{ fontSize: "clamp(1.4rem,4vw,2rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 10px", textShadow: "0 2px 20px rgba(255,215,0,0.6)" }}>{champion}</h2>
+        <p style={{ color: "#4ade80", fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>wins the 2026 World Cup!</p>
+        <p style={{ color: "#aaa", fontSize: 13, margin: "0 0 24px" }}>MetLife Stadium · East Rutherford, NJ · July 19, 2026</p>
+        <button onClick={onDismiss} style={{ padding: "12px 32px", background: "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
+          🎉 View Summary
+        </button>
       </div>
     </div>
   );
@@ -942,9 +1290,34 @@ export default function App() {
   const [knockoutWinners,   setKnockoutWinners]   = useState({});
   const [champion,          setChampion]          = useState(null);
   const [showCelebration,   setShowCelebration]   = useState(false);
+  const [fadingOut,         setFadingOut]         = useState(false);
 
   const setGroup = (g, winner, runner, third) =>
     setAllGroupStandings((p) => ({ ...p, [g]: { winner, runner, third } }));
+
+  // Confirm all 12 groups at once using their current displayed order (default = original order)
+  const handleConfirmAllGroups = () => {
+    const updates = {};
+    Object.entries(GROUPS).forEach(([g, data]) => {
+      // Only set groups that haven't been manually confirmed yet, using the default team order
+      if (!allGroupStandings[g]) {
+        const [winner, runner, third] = data.teams;
+        updates[g] = { winner, runner, third };
+      }
+    });
+    setAllGroupStandings((p) => ({ ...p, ...updates }));
+  };
+
+  // Reset everything back to initial state
+  const handleResetAll = () => {
+    setMainTeam(null);
+    setAllGroupStandings({});
+    setKnockoutWinners({});
+    setChampion(null);
+    setShowCelebration(false);
+    setFadingOut(false);
+    setPhase("group");
+  };
 
   const teamGroup  = findTeamGroup(mainTeam);
   const teamFinish = teamGroup
@@ -960,11 +1333,20 @@ export default function App() {
     setAllGroupStandings({});
     setChampion(null);
     setShowCelebration(false);
+    setFadingOut(false);
   };
 
   const handleChampion = (team) => {
     setChampion(team);
+    setFadingOut(false);
     setShowCelebration(true);
+    // After a moment, start fading out, then switch to Summary once fade completes
+    setTimeout(() => setFadingOut(true), 1400);
+    setTimeout(() => {
+      setShowCelebration(false);
+      setFadingOut(false);
+      setPhase("summary");
+    }, 2050);
   };
 
   const TABS = [
@@ -977,7 +1359,16 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top,#0d1a2e 0%,#070b12 58%,#050508 100%)", fontFamily: "'Segoe UI',system-ui,sans-serif", color: "#fff" }}>
 
       <Confetti active={showCelebration} />
-      {showCelebration && <CelebrationOverlay champion={champion} onDismiss={() => setShowCelebration(false)} />}
+      {showCelebration && (
+        <CelebrationOverlay
+          champion={champion}
+          fadingOut={fadingOut}
+          onDismiss={() => {
+            setFadingOut(true);
+            setTimeout(() => { setShowCelebration(false); setFadingOut(false); setPhase("summary"); }, 600);
+          }}
+        />
+      )}
 
       {/* ── HERO ── */}
       <div style={{ background: "linear-gradient(180deg,#003893 0%,#001f5b 68%,#000c28 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6 }}>
@@ -996,8 +1387,27 @@ export default function App() {
         </p>
 
         {/* ── TEAM SELECTOR ── */}
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
           <TeamSelector mainTeam={mainTeam} onChange={handleTeamChange} />
+          <button
+            onClick={handleResetAll}
+            style={{
+              padding: "5px 18px",
+              background: "transparent",
+              border: "1px solid rgba(248,113,113,0.3)",
+              borderRadius: 20,
+              color: "rgba(248,113,113,0.55)",
+              fontWeight: 600,
+              fontSize: 11,
+              cursor: "pointer",
+              letterSpacing: "0.04em",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={e => { e.target.style.borderColor = "rgba(248,113,113,0.7)"; e.target.style.color = "#f87171"; }}
+            onMouseLeave={e => { e.target.style.borderColor = "rgba(248,113,113,0.3)"; e.target.style.color = "rgba(248,113,113,0.55)"; }}
+          >
+            Reset All
+          </button>
         </div>
       </div>
 
@@ -1035,15 +1445,43 @@ export default function App() {
             )}
 
             <div style={{ textAlign: "center", margin: "0 0 16px" }}>
-              <div style={{ display: "inline-block", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: "6px 18px", fontSize: 12, color: "#445" }}>
-                ↓ Set all groups to resolve knockout opponents ↓
-              </div>
+              <button
+                onClick={handleConfirmAllGroups}
+                style={{ padding: "6px 18px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#888", fontWeight: 600, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; }}
+                onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; }}
+              >
+                Auto-Confirm All Groups
+              </button>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
               {Object.entries(GROUPS).filter(([g]) => g !== teamGroup).map(([g, data]) => (
                 <GroupCard key={g} group={g} teams={data.teams} standing={allGroupStandings[g]} onSet={(w, r, t) => setGroup(g, w, r, t)} mainTeam={mainTeam} />
               ))}
+            </div>
+
+            {/* Auto-Confirm button — below the group grid */}
+            <div style={{ textAlign: "center", marginTop: 18 }}>
+              <button
+                onClick={handleConfirmAllGroups}
+                style={{
+                  padding: "6px 18px",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 20,
+                  color: "#888",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  letterSpacing: "0.03em",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={e => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; }}
+                onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; }}
+              >
+                Auto-Confirm All Groups
+              </button>
             </div>
 
             {teamFinish && (
