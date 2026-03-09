@@ -569,41 +569,193 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   );
 }
 
-// ─── SHARE BUTTON ──────────────────────────────────────────────────────────────
-function ShareButton({ mainTeam }) {
-  const [showMenu, setShowMenu] = useState(false);
-  const text = mainTeam
-    ? `🏆 I just simulated ${mainTeam}'s path to the 2026 FIFA World Cup Final! Try the simulator.`
-    : `🏆 Simulate the 2026 FIFA World Cup! Try it yourself.`;
+// ─── BUILD PATH SUMMARY (pure function, no JSX) ───────────────────────────────
+// Generates the shareable text summary of the simulated tournament path.
+// Accepts the same simulation state used by SummaryPhase.
+function buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, knockoutWinners }) {
+  if (!mainTeam) return null;
 
+  const mw  = (id) => knockoutWinners[id] || null;
+  const gs  = (g, pos) => allGroupStandings[g]?.[pos] || null;
+
+  // Group finish label
+  const finishLabel =
+    teamFinish === "winner" ? "🥇 Group Winner" :
+    teamFinish === "runner" ? "🥈 Group Runner-up" :
+    teamFinish === "third"  ? "3rd Place (best 3rd)" :
+    teamFinish === "eliminated" ? "❌ Eliminated in Group Stage" :
+    "Group stage not set";
+
+  // Resolve R32 opponent from group standings
+  const mainR32match = (() => {
+    for (const m of R32) {
+      const resolve = (src) => {
+        if (src.type === "winner") return gs(src.g, "winner");
+        if (src.type === "runner") return gs(src.g, "runner");
+        for (const g of (src.gs || [])) { const t = allGroupStandings[g]?.third; if (t) return t; }
+        return null;
+      };
+      const t1 = resolve(m.t1), t2 = resolve(m.t2);
+      if (t1 === mainTeam || t2 === mainTeam) {
+        return { id: m.id, opp: t1 === mainTeam ? (t2 || "TBD") : (t1 || "TBD") };
+      }
+    }
+    return null;
+  })();
+
+  const findKO = (arr) => {
+    for (const m of arr) {
+      const t1 = mw(m.m1) || null, t2 = mw(m.m2) || null;
+      if (t1 === mainTeam || t2 === mainTeam)
+        return { id: m.id, opp: t1 === mainTeam ? (t2 || "TBD") : (t1 || "TBD") };
+    }
+    return null;
+  };
+
+  const r32w = mainR32match ? mw(mainR32match.id) : null;
+  const r16m = r32w === mainTeam ? findKO(R16) : null;
+  const r16w = r16m ? mw(r16m.id) : null;
+  const qfm  = r16w === mainTeam ? findKO(QF)  : null;
+  const qfw  = qfm  ? mw(qfm.id)  : null;
+  const sfm  = qfw  === mainTeam ? findKO(SF)  : null;
+  const sfw  = sfm  ? mw(sfm.id)  : null;
+  const sf1w = mw(101), sf2w = mw(102);
+  const finalOpp = (sf1w === mainTeam ? sf2w : sf1w) || "TBD";
+  const finalW   = mw(104);
+
+  // Build lines for each knockout round played
+  const lines = [];
+
+  if (mainR32match) {
+    const won = r32w === mainTeam;
+    const result = r32w ? (won ? "✅ Won" : `❌ Lost to ${r32w}`) : "⏳ Not played";
+    lines.push(`Round of 32: ${mainTeam} vs ${mainR32match.opp} — ${result}`);
+  }
+  if (r32w === mainTeam && r16m) {
+    const won = r16w === mainTeam;
+    const result = r16w ? (won ? "✅ Won" : `❌ Lost to ${r16w}`) : "⏳ Not played";
+    lines.push(`Round of 16: ${mainTeam} vs ${r16m.opp} — ${result}`);
+  }
+  if (r16w === mainTeam && qfm) {
+    const won = qfw === mainTeam;
+    const result = qfw ? (won ? "✅ Won" : `❌ Lost to ${qfw}`) : "⏳ Not played";
+    lines.push(`Quarterfinal: ${mainTeam} vs ${qfm.opp} — ${result}`);
+  }
+  if (qfw === mainTeam && sfm) {
+    const won = sfw === mainTeam;
+    const result = sfw ? (won ? "✅ Won" : `❌ Lost to ${sfw}`) : "⏳ Not played";
+    lines.push(`Semifinal: ${mainTeam} vs ${sfm.opp} — ${result}`);
+  }
+  if (sfw === mainTeam) {
+    const won = finalW === mainTeam;
+    const result = finalW ? (won ? "🏆 CHAMPIONS!" : `🥈 Runner-up (lost to ${finalW})`) : "⏳ Not played";
+    lines.push(`Final: ${mainTeam} vs ${finalOpp} — ${result}`);
+  } else if (sfw && sfw !== mainTeam) {
+    // reached third place
+    const bronze = mw(103);
+    const won = bronze === mainTeam;
+    const bronzeOpp = finalOpp;
+    const result = bronze ? (won ? "🥉 Won 3rd Place!" : `4th place (lost to ${bronze})`) : "⏳ Not played";
+    lines.push(`3rd Place: ${mainTeam} vs ${bronzeOpp} — ${result}`);
+  }
+
+  // Final result headline
+  const headline =
+    finalW === mainTeam             ? `🏆 ${mainTeam} are 2026 World Cup CHAMPIONS!` :
+    finalW && sfw === mainTeam      ? `🥈 ${mainTeam} finish as runners-up` :
+    mw(103) === mainTeam            ? `🥉 ${mainTeam} win 3rd place` :
+    sfw && sfw !== mainTeam         ? `💔 ${mainTeam} eliminated in the Semis` :
+    qfw && qfw !== mainTeam         ? `💔 ${mainTeam} eliminated in the Quarters` :
+    r16w && r16w !== mainTeam       ? `💔 ${mainTeam} eliminated in the Round of 16` :
+    r32w && r32w !== mainTeam       ? `💔 ${mainTeam} eliminated in the Round of 32` :
+    teamFinish === "eliminated"     ? `💔 ${mainTeam} eliminated in the Group Stage` :
+    `⚽ ${mainTeam}'s path is in progress`;
+
+  const url = typeof window !== "undefined" ? window.location.href : "";
+
+  return [
+    `⚽ My ${mainTeam} path — 2026 FIFA World Cup`,
+    ``,
+    `Group ${teamGroup}: ${finishLabel}`,
+    ``,
+    ...lines,
+    ``,
+    headline,
+    ``,
+    `🌐 Simulate your own path: ${url}`,
+  ].join("\n");
+}
+
+// ─── SHARE BUTTON ──────────────────────────────────────────────────────────────
+// Now accepts full simulation state so it can include the path summary in shares.
+function ShareButton({ mainTeam, teamFinish, teamGroup, allGroupStandings, knockoutWinners }) {
+  const [showMenu,   setShowMenu]   = useState(false);
+  const [copied,     setCopied]     = useState(false);
+
+  // Build the rich summary; fall back to a generic line if nothing is simulated yet
+  const summary = (mainTeam && teamGroup)
+    ? buildPathSummary({ mainTeam, teamFinish, teamGroup, allGroupStandings, knockoutWinners })
+    : null;
+
+  const shareText = summary
+    ?? `🏆 Simulate the 2026 FIFA World Cup! Try it yourself.`;
+
+  const url = typeof window !== "undefined" ? window.location.href : "";
+
+  // For platforms that only accept a URL (Facebook), we keep the URL-only variant
   const shareOpts = [
-    { name: "WhatsApp",    icon: "💬", url: `https://wa.me/?text=${encodeURIComponent(text + " " + window.location.href)}` },
-    { name: "Facebook",    icon: "👥", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}` },
-    { name: "X / Twitter", icon: "🐦", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}` },
-    { name: "iMessage",    icon: "💙", url: `sms:&body=${encodeURIComponent(text + " " + window.location.href)}` },
-    { name: "Copy Link",   icon: "🔗", url: null },
+    { name: "WhatsApp",    icon: "💬", url: `https://wa.me/?text=${encodeURIComponent(shareText)}` },
+    { name: "X / Twitter", icon: "🐦", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}` },
+    { name: "Facebook",    icon: "👥", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+    { name: "iMessage",    icon: "💙", url: `sms:&body=${encodeURIComponent(shareText)}` },
+    { name: "Copy Path",   icon: "📋", url: null },  // copies full summary + link
   ];
 
   const doShare = async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "2026 World Cup Simulator", text, url: window.location.href }); return; } catch {}
+      try {
+        await navigator.share({
+          title: `${mainTeam ? mainTeam + " —" : ""} 2026 World Cup Simulator`,
+          text:  shareText,
+          url,
+        });
+        return;
+      } catch {}
     }
     setShowMenu((v) => !v);
   };
 
   const handle = async (opt) => {
-    if (opt.name === "Copy Link") { try { await navigator.clipboard.writeText(window.location.href); } catch {} }
-    else if (opt.url) window.open(opt.url, "_blank");
+    if (opt.name === "Copy Path") {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
+      } catch {}
+    } else if (opt.url) {
+      window.open(opt.url, "_blank");
+    }
     setShowMenu(false);
   };
 
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
-      <button onClick={doShare} style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer" }}>
+      <button
+        onClick={doShare}
+        style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer" }}
+      >
         📤 Share My Simulation
       </button>
+
+      {/* Copied confirmation toast */}
+      {copied && (
+        <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", background: "#4ade80", color: "#000", fontWeight: 800, fontSize: 13, padding: "8px 20px", borderRadius: 10, whiteSpace: "nowrap", zIndex: 2100 }}>
+          ✅ Path copied to clipboard!
+        </div>
+      )}
+
       {showMenu && (
-        <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", background: "#0d1520", border: "2px solid rgba(255,215,0,0.3)", borderRadius: 14, zIndex: 2000, padding: 12, boxShadow: "0 -12px 40px rgba(0,0,0,0.8)", minWidth: 220 }}>
+        <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", background: "#0d1520", border: "2px solid rgba(255,215,0,0.3)", borderRadius: 14, zIndex: 2000, padding: 12, boxShadow: "0 -12px 40px rgba(0,0,0,0.8)", minWidth: 230 }}>
           <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10, textAlign: "center" }}>Share Via</div>
           {shareOpts.map((opt) => (
             <button key={opt.name} onClick={() => handle(opt)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "10px 12px", background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, color: "#ddd", cursor: "pointer", fontSize: 14, marginBottom: 6 }}>
@@ -748,7 +900,13 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
 
       <div style={{ marginTop: 32, textAlign: "center" }}>
         <p style={{ color: "#555", fontSize: 13, marginBottom: 16 }}>Enjoyed the simulation? Share it!</p>
-        <ShareButton mainTeam={mainTeam} />
+        <ShareButton
+          mainTeam={mainTeam}
+          teamFinish={teamFinish}
+          teamGroup={teamGroup}
+          allGroupStandings={allGroupStandings}
+          knockoutWinners={knockoutWinners}
+        />
       </div>
     </div>
   );
