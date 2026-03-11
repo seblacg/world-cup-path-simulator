@@ -1,3 +1,4 @@
+"use client";
 import WCMSV4 from "../WCMSV4";
 
 export default function Page() {
