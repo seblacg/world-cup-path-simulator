@@ -1519,7 +1519,7 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%" }}>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Select your team</div>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 520 }}>
-                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia"].map(team => (
+                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Scotland","Croatia","Ecuador","Belgium","Australia"].map(team => (
                     <button key={team} onClick={() => handleTeamChange(team)}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
                       onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
@@ -1529,7 +1529,7 @@ export default function App() {
                     </button>
                   ))}
                   <OtherTeamsDropdown
-                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia"].includes(t)).sort()}
+                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Scotland","Croatia","Ecuador","Belgium","Australia"].includes(t)).sort()}
                     onSelect={handleTeamChange}
                   />
                 </div>
