@@ -1463,12 +1463,53 @@ export default function App() {
       )}
 
       {/* ── HERO ── */}
-      <div style={{ position: "relative", background: "linear-gradient(180deg,#003893 0%,#001f5b 68%,#000c28 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6, overflow: "hidden" }}>
+      <div style={{ position: "relative", background: "linear-gradient(180deg,#00277a 0%,#001650 55%,#000a1e 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6, overflow: "hidden" }}>
 
-        {/* Stadium texture overlay — diagonal stripes */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 40px)", pointerEvents: "none" }} />
+        {/* Stadium silhouette SVG */}
+        <svg viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "60%", opacity: 0.18, pointerEvents: "none" }}>
+          {/* Pitch markings */}
+          <rect x="300" y="160" width="600" height="2" fill="#4a8" opacity="0.4"/>
+          <ellipse cx="600" cy="160" rx="80" ry="30" fill="none" stroke="#4a8" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="600" y1="130" x2="600" y2="192" stroke="#4a8" strokeWidth="1.5" opacity="0.4"/>
+          {/* Left stand */}
+          <path d="M0,220 L0,100 Q30,80 80,70 L180,60 Q220,55 260,58 L300,62 L300,160 L0,160 Z" fill="#1a3a7a"/>
+          <path d="M0,100 Q30,80 80,70 L180,60 Q220,55 260,58 L300,62 L300,68 L260,64 Q220,61 180,66 L80,76 Q30,86 0,106 Z" fill="#2a4a9a"/>
+          {/* Right stand */}
+          <path d="M1200,220 L1200,100 Q1170,80 1120,70 L1020,60 Q980,55 940,58 L900,62 L900,160 L1200,160 Z" fill="#1a3a7a"/>
+          <path d="M1200,100 Q1170,80 1120,70 L1020,60 Q980,55 940,58 L900,62 L900,68 L940,64 Q980,61 1020,66 L1120,76 Q1170,86 1200,106 Z" fill="#2a4a9a"/>
+          {/* Upper tiers left */}
+          <path d="M0,100 Q30,80 80,70 L180,60 Q220,55 260,58 L300,62 L300,56 L260,52 Q220,49 180,54 L80,64 Q30,74 0,94 Z" fill="#3a5aaa"/>
+          <path d="M0,94 Q30,74 80,64 L180,54 Q220,49 260,52 L300,56 L300,50 L260,46 Q220,43 180,48 L80,58 Q30,68 0,88 Z" fill="#1e3570"/>
+          {/* Upper tiers right */}
+          <path d="M1200,100 Q1170,80 1120,70 L1020,60 Q980,55 940,58 L900,62 L900,56 L940,52 Q980,49 1020,54 L1120,64 Q1170,74 1200,94 Z" fill="#3a5aaa"/>
+          <path d="M1200,94 Q1170,74 1120,64 L1020,54 Q980,49 940,52 L900,56 L900,50 L940,46 Q980,43 1020,48 L1120,58 Q1170,68 1200,88 Z" fill="#1e3570"/>
+          {/* Floodlights left */}
+          <rect x="55" y="20" width="6" height="50" fill="#7090d0"/>
+          <rect x="40" y="18" width="36" height="5" rx="2" fill="#8aabf0"/>
+          <rect x="155" y="30" width="5" height="40" fill="#7090d0"/>
+          <rect x="142" y="28" width="30" height="4" rx="2" fill="#8aabf0"/>
+          {/* Floodlights right */}
+          <rect x="1139" y="20" width="6" height="50" fill="#7090d0"/>
+          <rect x="1124" y="18" width="36" height="5" rx="2" fill="#8aabf0"/>
+          <rect x="1040" y="30" width="5" height="40" fill="#7090d0"/>
+          <rect x="1027" y="28" width="30" height="4" rx="2" fill="#8aabf0"/>
+          {/* Crowd dots left stand */}
+          {[...Array(12)].map((_,i) => [...Array(30)].map((_,j) => (
+            <circle key={`cl-${i}-${j}`} cx={10+j*9} cy={75+i*8} r="1.5" fill={`hsl(${210+i*3},${40+j*1}%,${50+i*3}%)`} opacity={0.5+Math.random()*0.4}/>
+          )))}
+          {/* Crowd dots right stand */}
+          {[...Array(12)].map((_,i) => [...Array(30)].map((_,j) => (
+            <circle key={`cr-${i}-${j}`} cx={930+j*9} cy={75+i*8} r="1.5" fill={`hsl(${210+i*3},${40+j*1}%,${50+i*3}%)`} opacity={0.5+Math.random()*0.4}/>
+          )))}
+        </svg>
+
+        {/* Subtle diagonal stripes */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 40px)", pointerEvents: "none" }} />
+        {/* Floodlight glow from corners */}
+        <div style={{ position: "absolute", top: 0, left: 0, width: 300, height: 200, background: "radial-gradient(ellipse at 10% 10%, rgba(150,180,255,0.07) 0%, transparent 60%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, right: 0, width: 300, height: 200, background: "radial-gradient(ellipse at 90% 10%, rgba(150,180,255,0.07) 0%, transparent 60%)", pointerEvents: "none" }} />
         {/* Radial glow behind title */}
-        <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", width: 600, height: 300, background: "radial-gradient(ellipse,rgba(255,215,0,0.08) 0%,transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", width: 600, height: 300, background: "radial-gradient(ellipse,rgba(255,215,0,0.09) 0%,transparent 70%)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, filter: "drop-shadow(0 6px 18px rgba(255,215,0,0.45))" }}>
@@ -1488,25 +1529,33 @@ export default function App() {
           <p style={{ color: "#6a9fd8", margin: "0 0 10px", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             World Cup Match Simulator
           </p>
-          <p style={{ color: "rgba(255,255,255,0.72)", margin: "0 0 24px", fontSize: "0.88rem", maxWidth: 500, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
-            Map out your team's path to the 2026 World Cup final.<br />
-            Simulate every match. Visualize your journey to glory.
+
+          {/* ── COUNTDOWN ── */}
+          {(() => {
+            const kickoff = new Date("2026-06-11T00:00:00");
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const days = Math.ceil((kickoff - today) / (1000 * 60 * 60 * 24));
+            if (days <= 0) return null;
+            return (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <span style={{ fontSize: 16 }}>⚽</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.05em" }}>
+                  <span style={{ color: "#FFD700", fontWeight: 900 }}>{days}</span> {days === 1 ? "day" : "days"} until kick-off
+                </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>· Jun 11, 2026</span>
+              </div>
+            );
+          })()}
+
+          <p style={{ margin: "0 0 24px", maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.8 }}>
+            <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.95rem", fontWeight: 500 }}>Map out your team's path to the </span>
+            <span style={{ color: "#FFD700", fontWeight: 800, fontSize: "0.95rem" }}>2026 World Cup final.</span>
+            <br />
+            <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.82rem", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Simulate every match · Visualize your journey to glory</span>
           </p>
 
-          {/* ── HOW IT WORKS ── */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28, flexWrap: "wrap", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
-            {[
-              { icon: "🌍", step: "1", text: "Pick your team" },
-              { icon: "⚽", step: "2", text: "Simulate every match" },
-              { icon: "📤", step: "3", text: "Share your path" },
-            ].map((s) => (
-              <div key={s.step} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "7px 14px", fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>
-                <span style={{ background: "#FFD700", color: "#000", borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, flexShrink: 0 }}>{s.step}</span>
-                <span style={{ fontSize: 14 }}>{s.icon}</span>
-                <span>{s.text}</span>
-              </div>
-            ))}
-          </div>
+
 
           {/* ── TEAM SELECTOR ── */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
@@ -1519,7 +1568,7 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%" }}>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Select your team</div>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 520 }}>
-                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Scotland","Croatia","Ecuador","Belgium","Australia"].map(team => (
+                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].map(team => (
                     <button key={team} onClick={() => handleTeamChange(team)}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
                       onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
@@ -1529,7 +1578,7 @@ export default function App() {
                     </button>
                   ))}
                   <OtherTeamsDropdown
-                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Scotland","Croatia","Ecuador","Belgium","Australia"].includes(t)).sort()}
+                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].includes(t)).sort()}
                     onSelect={handleTeamChange}
                   />
                 </div>
