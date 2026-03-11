@@ -215,6 +215,34 @@ function TeamLabel({ name, size = 14 }) {
 }
 
 // ─── TEAM SELECTOR — pure native <select> ─────────────────────────────────────
+function OtherTeamsDropdown({ teams, onSelect }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: open ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.07)", border: open ? "1px solid rgba(255,215,0,0.5)" : "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: open ? "#FFD700" : "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#ddd"; }}}
+      >
+        Other ▾
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: "#0d1520", border: "1px solid rgba(255,215,0,0.25)", borderRadius: 12, zIndex: 500, padding: "8px 4px", minWidth: 180, maxHeight: 260, overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,0.7)" }}>
+          {teams.map(team => (
+            <button key={team} onClick={() => { onSelect(team); setOpen(false); }}
+              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "transparent", border: "none", color: "#ccc", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 6, transition: "all 0.1s", textAlign: "left" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.12)"; e.currentTarget.style.color = "#FFD700"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#ccc"; }}
+            >
+              <Flag name={team} size={14} />{team}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TeamSelector({ mainTeam, onChange }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
@@ -419,16 +447,16 @@ function TicketPrices({ round, city, teams }) {
   return (
     <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: 18, marginTop: 14 }}>
       <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>🎫 Estimated Ticket Prices</div>
-      <div style={{ fontSize: 12, color: "#666", marginBottom: 14 }}>{teams} · {city}</div>
+      <div style={{ fontSize: 12, color: "#8fa8c0", marginBottom: 14 }}>{teams} · {city}</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
         {Object.entries(prices).map(([pl, price]) => (
           <a key={pl} href={links[pl]} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-            <div style={{ background: pl === cheapest[0] ? `${meta[pl].color}22` : "rgba(255,255,255,0.03)", border: `1px solid ${pl === cheapest[0] ? meta[pl].color : "rgba(255,255,255,0.08)"}`, borderRadius: 10, padding: "14px 8px", textAlign: "center", position: "relative", cursor: "pointer" }}>
+            <div style={{ background: pl === cheapest[0] ? `${meta[pl].color}22` : "rgba(255,255,255,0.055)", border: `1px solid ${pl === cheapest[0] ? meta[pl].color : "rgba(255,255,255,0.13)"}`, borderRadius: 10, padding: "14px 8px", textAlign: "center", position: "relative", cursor: "pointer" }}>
               {pl === cheapest[0] && <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: "#FFD700", color: "#000", fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 10, textTransform: "uppercase", letterSpacing: 1, whiteSpace: "nowrap" }}>Best Deal</div>}
               <div style={{ fontSize: 20, marginBottom: 4 }}>{meta[pl].icon}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: meta[pl].color }}>{meta[pl].name}</div>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "5px 0" }}>${price}</div>
-              <div style={{ fontSize: 9, color: "#555" }}>tap to search</div>
+              <div style={{ fontSize: 9, color: "#7a95ae" }}>tap to search</div>
             </div>
           </a>
         ))}
@@ -441,33 +469,53 @@ function TicketPrices({ round, city, teams }) {
   );
 }
 
+// ─── TEAM ACCENT COLORS (used for the "X's Group" badge only) ────────────────
+const TEAM_COLORS = {
+  "Albania":"#E41E20","Argentina":"#75AADB","Australia":"#00843D","Austria":"#ED2939",
+  "Belgium":"#EF3340","Bolivia":"#CE1126","Brazil":"#009C3B","Cabo Verde":"#003893",
+  "Canada":"#FF0000","Chile":"#D52B1E","Colombia":"#FCD116","Congo DR":"#007FFF",
+  "Costa Rica":"#002B7F","Côte d'Ivoire":"#F77F00","Croatia":"#FF0000","Curaçao":"#003DA5",
+  "Denmark":"#C60C30","Ecuador":"#FFD100","Egypt":"#CE1126","England":"#CF091B",
+  "France":"#002395","Germany":"#555555","Ghana":"#006B3F","Haiti":"#00209F",
+  "Honduras":"#0073CF","IR Iran":"#239F40","Iraq":"#CE1126","Ireland":"#169B62",
+  "Japan":"#BC002D","Jordan":"#007A3D","Korea Republic":"#003478","Mexico":"#006847",
+  "Morocco":"#C1272D","Netherlands":"#FF6600","New Zealand":"#00247D","Nigeria":"#008751",
+  "Norway":"#EF2B2D","Panama":"#DA121A","Paraguay":"#D52B1E","Peru":"#D91023",
+  "Poland":"#DC143C","Portugal":"#006600","Qatar":"#8D1B3D","Romania":"#002B7F",
+  "Saudi Arabia":"#006C35","Scotland":"#005EB8","Senegal":"#00853F","Serbia":"#C6363C",
+  "Slovakia":"#005BBB","South Africa":"#007A4D","Spain":"#AA151B","Suriname":"#377E3F",
+  "Sweden":"#006AA7","Switzerland":"#FF0000","Tunisia":"#E70013","Türkiye":"#E30A17",
+  "Ukraine":"#005BBB","Uruguay":"#5EB6E4","USA":"#B22234","Uzbekistan":"#1EB53A",
+  "Wales":"#C8102E",
+};
+const teamColor = (name) => TEAM_COLORS[name] || "#FFD700";
+
 // ─── GROUP CARD ────────────────────────────────────────────────────────────────
 function GroupCard({ group, teams, standing, onSet, mainTeam }) {
   const [order, setOrder] = useState([...teams]);
   const hasMain = !!mainTeam && teams.includes(mainTeam);
+  const badgeColor = teamColor(mainTeam);
 
-  // Reset order whenever the teams array changes (e.g. user switches selected team,
-  // causing a different group's card to render in the "pinned" slot)
   useEffect(() => {
     setOrder([...teams]);
-  }, [teams.join(",")]); // stringify for stable comparison
+  }, [teams.join(",")]);
 
   const swap = (i, j) => { const o = [...order]; [o[i], o[j]] = [o[j], o[i]]; setOrder(o); };
   const POS = [
     { label: "1st", color: "#FFD700", bg: "rgba(255,215,0,0.11)" },
-    { label: "2nd", color: "#b0b0b0", bg: "rgba(180,180,180,0.07)" },
-    { label: "3rd", color: "#f97316", bg: "rgba(249,115,22,0.09)" },
+    { label: "2nd", color: "#93b4d4", bg: "rgba(147,180,212,0.08)" },
+    { label: "3rd", color: "#ef4444", bg: "rgba(239,68,68,0.09)" },
     { label: "4th", color: "#444",    bg: "rgba(255,255,255,0.02)" },
   ];
 
   return (
-    <div style={{ background: hasMain ? "linear-gradient(135deg,#0d1b3a,#131f40)" : "rgba(255,255,255,0.03)", border: hasMain ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 18, position: "relative" }}>
+    <div style={{ background: hasMain ? "linear-gradient(135deg,#0d1b3a,#131f40)" : "rgba(255,255,255,0.055)", border: hasMain ? `2px solid ${badgeColor}` : "1px solid rgba(255,255,255,0.13)", borderRadius: 14, padding: 18, position: "relative" }}>
       {hasMain && (
-        <div style={{ position: "absolute", top: -11, left: 16, background: "#FFD700", color: "#000", fontSize: 10, fontWeight: 900, padding: "2px 14px", borderRadius: 10, letterSpacing: 1.2, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 5 }}>
+        <div style={{ position: "absolute", top: -11, left: 16, background: badgeColor, color: "#fff", fontSize: 10, fontWeight: 900, padding: "2px 14px", borderRadius: 10, letterSpacing: 1.2, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 5, border: `1px solid ${badgeColor}`, boxShadow: `0 2px 8px ${badgeColor}55` }}>
           ⭐ {mainTeam}'s Group
         </div>
       )}
-      <div style={{ fontWeight: 800, fontSize: 13, color: hasMain ? "#FFD700" : "#666", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>Group {group}</div>
+      <div style={{ fontWeight: 800, fontSize: 13, color: hasMain ? "#FFD700" : "#8fa8c0", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>Group {group}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {order.map((team, idx) => {
           const ps = POS[idx];
@@ -478,14 +526,29 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
               <Flag name={team} size={17} />
               <span style={{ flex: 1, fontSize: 13, color: isMain ? "#FFD700" : "#ddd", fontWeight: isMain ? 800 : 600 }}>{team}</span>
               <div style={{ display: "flex", gap: 3 }}>
-                {idx > 0           && <button onClick={() => swap(idx, idx - 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#888", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↑</button>}
-                {idx < order.length - 1 && <button onClick={() => swap(idx, idx + 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#888", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↓</button>}
+                {idx > 0           && <button onClick={() => swap(idx, idx - 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#94a8bf", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↑</button>}
+                {idx < order.length - 1 && <button onClick={() => swap(idx, idx + 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#94a8bf", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↓</button>}
               </div>
             </div>
           );
         })}
       </div>
-      <button onClick={() => onSet(order[0], order[1], order[2])} style={{ marginTop: 12, width: "100%", padding: "10px 0", background: standing ? "rgba(74,222,128,0.13)" : hasMain ? "rgba(255,215,0,0.18)" : "rgba(255,255,255,0.05)", border: standing ? "1px solid #4ade80" : hasMain ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: standing ? "#4ade80" : hasMain ? "#FFD700" : "#777", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}>
+      <button onClick={() => onSet(order[0], order[1], order[2])} style={{ marginTop: 12, width: "100%", padding: "10px 0", background: standing ? "rgba(74,222,128,0.13)" : hasMain ? "rgba(255,215,0,0.18)" : "rgba(255,255,255,0.05)", border: standing ? "1px solid #4ade80" : hasMain ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: standing ? "#4ade80" : hasMain ? "#FFD700" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.3)" : hasMain ? "rgba(255,215,0,0.35)" : "rgba(255,255,255,0.14)";
+          e.currentTarget.style.borderColor = standing ? "#4ade80" : hasMain ? "#FFD700" : "rgba(255,255,255,0.5)";
+          e.currentTarget.style.color = standing ? "#fff" : hasMain ? "#fff" : "#fff";
+          e.currentTarget.style.boxShadow = standing ? "0 0 12px rgba(74,222,128,0.3)" : hasMain ? "0 0 12px rgba(255,215,0,0.3)" : "0 0 10px rgba(255,255,255,0.12)";
+          e.currentTarget.style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.13)" : hasMain ? "rgba(255,215,0,0.18)" : "rgba(255,255,255,0.05)";
+          e.currentTarget.style.borderColor = standing ? "#4ade80" : hasMain ? "#FFD700" : "rgba(255,255,255,0.1)";
+          e.currentTarget.style.color = standing ? "#4ade80" : hasMain ? "#FFD700" : "#8fa8c0";
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
         {standing ? `✓ ${standing.winner} wins Group ${group}` : `Confirm Group ${group}`}
       </button>
     </div>
@@ -496,6 +559,7 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
 function MatchCard({ match, t1, t2, winner, onPick, highlight, mainTeam, label, isFinal, isBronze }) {
   const team1 = isPlaceholder(t1) ? (t1 || "Other") : t1;
   const team2 = isPlaceholder(t2) ? (t2 || "Other") : t2;
+  const tc = teamColor(mainTeam); // team's assigned color
   const btn = (team) => ({
     flex: 1, padding: "10px 8px", borderRadius: 9, cursor: "pointer", transition: "all 0.15s",
     border: winner === team ? "2px solid #4ade80" : "1px solid rgba(255,255,255,0.1)",
@@ -503,16 +567,31 @@ function MatchCard({ match, t1, t2, winner, onPick, highlight, mainTeam, label, 
     color: winner === team ? "#4ade80" : "#ccc",
     display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 12,
   });
+  const btnHover = (e, team) => {
+    if (winner === team) return;
+    e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+    e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)";
+    e.currentTarget.style.color = "#fff";
+  };
+  const btnLeave = (e, team) => {
+    if (winner === team) return;
+    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+    e.currentTarget.style.color = "#ccc";
+  };
   return (
-    <div style={{ background: highlight ? "linear-gradient(135deg,rgba(255,215,0,0.09),rgba(255,140,0,0.04))" : "rgba(255,255,255,0.03)", border: highlight ? "2px solid #FFD700" : isFinal ? "2px solid #ff6b2b" : "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 14, position: "relative" }}>
-      {highlight && mainTeam && <div style={{ position: "absolute", top: -10, right: 12, background: "#FFD700", color: "#000", fontSize: 9, fontWeight: 900, padding: "2px 9px", borderRadius: 9, textTransform: "uppercase", letterSpacing: 1 }}>⭐ {mainTeam}</div>}
+    <div style={{ background: highlight ? `linear-gradient(135deg,${tc}18,${tc}08)` : "rgba(255,255,255,0.055)", border: highlight ? `2px solid ${tc}` : isFinal ? "2px solid #ff6b2b" : "1px solid rgba(255,255,255,0.13)", borderRadius: 12, padding: 14, position: "relative" }}>
+      {highlight && mainTeam && <div style={{ position: "absolute", top: -10, right: 12, background: tc, color: "#fff", fontSize: 9, fontWeight: 900, padding: "2px 9px", borderRadius: 9, textTransform: "uppercase", letterSpacing: 1, boxShadow: `0 2px 8px ${tc}55` }}>⭐ {mainTeam}</div>}
       {isFinal  && !highlight && <div style={{ position: "absolute", top: -10, left: 12, background: "#ff6b2b", color: "#fff", fontSize: 9, fontWeight: 900, padding: "2px 9px", borderRadius: 9 }}>🏆 Final</div>}
       {isBronze && !highlight && <div style={{ position: "absolute", top: -10, left: 12, background: "#cd7f32", color: "#fff", fontSize: 9, fontWeight: 900, padding: "2px 9px", borderRadius: 9 }}>🥉 3rd Place</div>}
-      {label && <div style={{ fontSize: 10, color: "#444", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>{label}</div>}
-      <div style={{ fontSize: 11, color: "#3a3a4a", marginBottom: 10 }}>📅 {match.date} · 📍 {match.city}</div>
+      {label && <div style={{ fontSize: 10, color: "#7a95ae", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 }}>{label}</div>}
+      <div style={{ fontSize: 11, color: "#8fa8c0", marginBottom: 10 }}>📅 {match.date} · 📍 {match.city}</div>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         {[team1, team2].map((t, i) => (
-          <button key={i} onClick={() => onPick(t)} style={btn(t)}>
+          <button key={i} onClick={() => onPick(t)} style={btn(t)}
+            onMouseEnter={e => btnHover(e, t)}
+            onMouseLeave={e => btnLeave(e, t)}
+          >
             <Flag name={t} size={16} />
             <span style={{ flex: 1, textAlign: "left" }}>{t.length > 20 ? t.slice(0, 18) + "…" : t}</span>
             {winner === t && <span style={{ fontSize: 11 }}>✓</span>}
@@ -567,14 +646,17 @@ function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incomplete
       {/* Button row */}
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         {onBack && (
-          <button onClick={onBack} style={{ flex: "0 0 auto", padding: "13px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#888", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+          <button onClick={onBack} style={{ flex: "0 0 auto", padding: "13px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#94a8bf", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#ccc"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#888"; }}
           >
             ← {backLabel || "Back"}
           </button>
         )}
-        <button onClick={handleContinue} style={{ flex: 1, padding: "13px 0", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={handleContinue} style={{ flex: 1, padding: "13px 0", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", transition: "all 0.15s" }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,215,0,0.35)"; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+        >
           {label}
         </button>
       </div>
@@ -583,7 +665,7 @@ function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incomplete
 }
 
 // ─── KNOCKOUT PHASE ────────────────────────────────────────────────────────────
-function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners, mainTeam, teamFinish, teamGroup, onChampion }) {
+function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners, mainTeam, teamFinish, teamGroup, onChampion, onBackToGroups }) {
   const [activeRound, setActiveRound] = useState("r32");
 
   const gs  = (g, pos) => { const s = allGroupStandings[g]; if (!s) return `${pos === "winner" ? "Winner" : pos === "runner" ? "Runner" : "3rd"} Grp ${g}`; return s[pos] || "Other"; };
@@ -603,7 +685,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   const subtleBtn = {
     padding: "6px 18px", background: "transparent",
     border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20,
-    color: "#888", fontWeight: 600, fontSize: 12, cursor: "pointer",
+    color: "#94a8bf", fontWeight: 600, fontSize: 12, cursor: "pointer",
     letterSpacing: "0.03em", transition: "all 0.15s",
   };
   const subtleBtnHover = (e) => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; };
@@ -678,7 +760,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       <div style={{ textAlign: "center", padding: 40, background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14 }}>
         <div style={{ fontSize: 44, marginBottom: 12 }}>🏟️</div>
         <p style={{ color: "#FFD700", fontWeight: 700, fontSize: 14 }}>Select your team at the top to highlight their matches!</p>
-        <p style={{ color: "#666", fontSize: 13 }}>You can still simulate all matches below.</p>
+        <p style={{ color: "#8fa8c0", fontSize: 13 }}>You can still simulate all matches below.</p>
       </div>
     );
   }
@@ -698,7 +780,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFD700", marginBottom: 6 }}>🏆 Knockout Stage</h2>
-        <p style={{ color: "#777", fontSize: 13, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+        <p style={{ color: "#8fa8c0", fontSize: 13, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
           <Flag name={mainTeam} size={16} />
           <strong style={{ color: "#FFD700" }}>{mainTeam}</strong> finishes{" "}
           <strong style={{ color: "#FFD700" }}>{teamFinish === "winner" ? "1st" : "2nd"}</strong> in Group {teamGroup}
@@ -728,7 +810,10 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       {/* Round tabs */}
       <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 20 }}>
         {TABS.map((r) => (
-          <button key={r.id} onClick={() => setActiveRound(r.id)} style={{ padding: "6px 16px", borderRadius: 20, border: activeRound === r.id ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.12)", background: activeRound === r.id ? "rgba(255,215,0,0.13)" : "rgba(255,255,255,0.03)", color: activeRound === r.id ? "#FFD700" : "#666", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.15s" }}>{r.label}</button>
+          <button key={r.id} onClick={() => setActiveRound(r.id)} style={{ padding: "6px 16px", borderRadius: 20, border: activeRound === r.id ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.12)", background: activeRound === r.id ? "rgba(255,215,0,0.13)" : "rgba(255,255,255,0.03)", color: activeRound === r.id ? "#FFD700" : "#8fa8c0", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.15s" }}
+            onMouseEnter={e => { if (activeRound !== r.id) { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
+            onMouseLeave={e => { if (activeRound !== r.id) { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#8fa8c0"; }}}
+          >{r.label}</button>
         ))}
       </div>
 
@@ -737,7 +822,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {R32.map((m) => { const t1 = rr(m.t1), t2 = rr(m.t2); return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 32`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("r16")} label="Continue to Round of 16 →" incomplete={R32.some((m) => !mw(m.id))} />
+          <ContinueBtn onClick={() => setActiveRound("r16")} label="Continue to Round of 16 →" onBack={onBackToGroups} backLabel="Group Stage" incomplete={R32.some((m) => !mw(m.id))} />
           <div style={{ textAlign: "center", marginTop: 10 }}>
             <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoR32}>Auto-Confirm All Round of 32</button>
           </div>
@@ -789,7 +874,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
             <MatchCard match={{ id: 103, date: "Jul 18", city: "Miami" }} t1={sf1loser} t2={sf2loser} winner={mw(103)} onPick={(w) => setKnockoutWinners((p) => ({ ...p, 103: w }))} highlight={matchHasMain(sf1loser, sf2loser)} mainTeam={mainTeam} label="Match 103 · Third Place" isBronze />
             <MatchCard match={{ id: 104, date: "Jul 19", city: "New York/NJ" }} t1={sf1w||"Other"} t2={sf2w||"Other"} winner={mw(104)} onPick={(w) => sw(104, w)} highlight={matchHasMain(sf1w||"Other", sf2w||"Other")} mainTeam={mainTeam} label="Match 104 · THE FINAL" isFinal />
             <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-              <button onClick={() => setActiveRound("sf")} style={{ flex: "0 0 auto", padding: "11px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#888", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+              <button onClick={() => setActiveRound("sf")} style={{ flex: "0 0 auto", padding: "11px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#94a8bf", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#ccc"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#888"; }}
               >
@@ -986,7 +1071,9 @@ function ShareButton({ mainTeam, teamFinish, teamGroup, allGroupStandings, knock
     <div style={{ position: "relative", display: "inline-block" }}>
       <button
         onClick={doShare}
-        style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer" }}
+        style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", transition: "all 0.15s" }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,215,0,0.35)"; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
       >
         📤 Share My Simulation
       </button>
@@ -1002,12 +1089,15 @@ function ShareButton({ mainTeam, teamFinish, teamGroup, allGroupStandings, knock
         <div style={{ position: "absolute", bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", background: "#0d1520", border: "2px solid rgba(255,215,0,0.3)", borderRadius: 14, zIndex: 2000, padding: 12, boxShadow: "0 -12px 40px rgba(0,0,0,0.8)", minWidth: 230 }}>
           <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10, textAlign: "center" }}>Share Via</div>
           {shareOpts.map((opt) => (
-            <button key={opt.name} onClick={() => handle(opt)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "10px 12px", background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, color: "#ddd", cursor: "pointer", fontSize: 14, marginBottom: 6 }}>
+            <button key={opt.name} onClick={() => handle(opt)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "10px 12px", background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 9, color: "#ddd", cursor: "pointer", fontSize: 14, marginBottom: 6, transition: "all 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "#ddd"; }}
+            >
               <span style={{ fontSize: 20 }}>{opt.icon}</span>
               <span style={{ fontWeight: 600 }}>{opt.name}</span>
             </button>
           ))}
-          <button onClick={() => setShowMenu(false)} style={{ width: "100%", padding: "8px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#666", cursor: "pointer", fontSize: 13, marginTop: 4 }}>Cancel</button>
+          <button onClick={() => setShowMenu(false)} style={{ width: "100%", padding: "8px 0", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#8fa8c0", cursor: "pointer", fontSize: 13, marginTop: 4 }}>Cancel</button>
         </div>
       )}
     </div>
@@ -1177,7 +1267,7 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
           ? <p style={{ color: "#4ade80", fontWeight: 700, fontSize: 16 }}>🥇 World Cup Champions!</p>
           : eliminated
           ? <p style={{ color: "#f87171", fontSize: 14 }}>Eliminated in the <strong>{eliminated.round}</strong> by <TeamLabel name={eliminated.w} size={14} /></p>
-          : <p style={{ color: "#555", fontSize: 13 }}>Complete the knockout rounds to see the full journey.</p>
+          : <p style={{ color: "#7a95ae", fontSize: 13 }}>Complete the knockout rounds to see the full journey.</p>
         }
       </div>
 
@@ -1189,21 +1279,21 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
           const lost = m.w && !won;
           const open = openIdx === i;
           return (
-            <div key={i} onClick={() => setOpenIdx(open ? null : i)} style={{ background: open ? "rgba(255,215,0,0.07)" : "rgba(255,255,255,0.03)", border: lost ? "1px solid rgba(248,113,113,0.3)" : won ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.07)", borderRadius: 13, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}>
+            <div key={i} onClick={() => setOpenIdx(open ? null : i)} style={{ background: open ? "rgba(255,215,0,0.07)" : "rgba(255,255,255,0.055)", border: lost ? "1px solid rgba(248,113,113,0.35)" : won ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.13)", borderRadius: 13, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                 <div>
-                  <div style={{ fontSize: 10, color: "#444", textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>{m.round}</div>
+                  <div style={{ fontSize: 10, color: "#7a95ae", textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>{m.round}</div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                     <TeamLabel name={mainTeam} size={15} />
-                    <span style={{ color: "#2a2a3a" }}>vs</span>
+                    <span style={{ color: "#6a85a0" }}>vs</span>
                     <TeamLabel name={m.opp} size={15} />
                   </div>
-                  <div style={{ fontSize: 11, color: "#3a3a4a" }}>📅 {m.date} · 📍 {m.city}</div>
+                  <div style={{ fontSize: 11, color: "#8fa8c0" }}>📅 {m.date} · 📍 {m.city}</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   {m.w
                     ? <span style={{ padding: "5px 14px", borderRadius: 16, background: won ? "rgba(74,222,128,0.13)" : "rgba(248,113,113,0.13)", color: won ? "#4ade80" : "#f87171", fontSize: 12, fontWeight: 700 }}>{won ? "✅ Won" : "❌ Lost"}</span>
-                    : <span style={{ color: "#2a2a3a", fontSize: 12 }}>Tap for 🎫</span>
+                    : <span style={{ color: "#6a85a0", fontSize: 12 }}>Tap for 🎫</span>
                   }
                   <span style={{ color: open ? "#FFD700" : "#2a2a3a", fontSize: 16 }}>{open ? "▲" : "▼"}</span>
                 </div>
@@ -1215,7 +1305,7 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
       </div>
 
       <div style={{ marginTop: 32, textAlign: "center" }}>
-        <p style={{ color: "#555", fontSize: 13, marginBottom: 16 }}>Enjoyed the simulation? Share it!</p>
+        <p style={{ color: "#7a95ae", fontSize: 13, marginBottom: 16 }}>Enjoyed the simulation? Share it!</p>
         <ShareButton
           mainTeam={mainTeam}
           teamFinish={teamFinish}
@@ -1373,50 +1463,98 @@ export default function App() {
       )}
 
       {/* ── HERO ── */}
-      <div style={{ background: "linear-gradient(180deg,#003893 0%,#001f5b 68%,#000c28 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6 }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, filter: "drop-shadow(0 6px 18px rgba(255,215,0,0.45))" }}>
-          {mainTeam ? <Flag name={mainTeam} size={60} /> : <span style={{ fontSize: 64 }}>🏆</span>}
-        </div>
-        <h1 style={{ fontSize: "clamp(1.4rem,5vw,2.5rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase", textShadow: "0 2px 20px rgba(255,215,0,0.55)" }}>
-          YOUR TEAM'S WORLD CUP PATH
-        </h1>
-        <p style={{ color: "#6a9fd8", margin: "0 0 10px", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-          FIFA World Cup 2026 — Interactive Simulator
-        </p>
-        <p style={{ color: "rgba(255,255,255,0.5)", margin: "0 0 26px", fontSize: "0.88rem", maxWidth: 500, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
-          Map out your team's path to the 2026 World Cup final.<br />
-          Calculate all possible match configurations. Visualize your journey to victory.
-        </p>
+      <div style={{ position: "relative", background: "linear-gradient(180deg,#003893 0%,#001f5b 68%,#000c28 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6, overflow: "hidden" }}>
 
-        {/* ── TEAM SELECTOR ── */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-          <TeamSelector mainTeam={mainTeam} onChange={handleTeamChange} />
-          <button
-            onClick={handleResetAll}
-            style={{
-              padding: "5px 18px",
-              background: "transparent",
-              border: "1px solid rgba(248,113,113,0.3)",
-              borderRadius: 20,
-              color: "rgba(248,113,113,0.55)",
-              fontWeight: 600,
-              fontSize: 11,
-              cursor: "pointer",
-              letterSpacing: "0.04em",
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={e => { e.target.style.borderColor = "rgba(248,113,113,0.7)"; e.target.style.color = "#f87171"; }}
-            onMouseLeave={e => { e.target.style.borderColor = "rgba(248,113,113,0.3)"; e.target.style.color = "rgba(248,113,113,0.55)"; }}
-          >
-            Reset All
-          </button>
+        {/* Stadium texture overlay — diagonal stripes */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 40px)", pointerEvents: "none" }} />
+        {/* Radial glow behind title */}
+        <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", width: 600, height: 300, background: "radial-gradient(ellipse,rgba(255,215,0,0.08) 0%,transparent 70%)", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, filter: "drop-shadow(0 6px 18px rgba(255,215,0,0.45))" }}>
+            {mainTeam ? <Flag name={mainTeam} size={60} /> : <span style={{ fontSize: 64 }}>🏆</span>}
+          </div>
+
+          {/* Stats line */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginBottom: 10, fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700 }}>
+            <span>48 TEAMS</span>
+            <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+            <span>64 MATCHES</span>
+          </div>
+
+          <h1 style={{ fontSize: "clamp(1.4rem,5vw,2.5rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase", textShadow: "0 2px 20px rgba(255,215,0,0.55)" }}>
+            THE PATH TO 2026
+          </h1>
+          <p style={{ color: "#6a9fd8", margin: "0 0 10px", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            World Cup Match Simulator
+          </p>
+          <p style={{ color: "rgba(255,255,255,0.72)", margin: "0 0 24px", fontSize: "0.88rem", maxWidth: 500, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+            Map out your team's path to the 2026 World Cup final.<br />
+            Simulate every match. Visualize your journey to glory.
+          </p>
+
+          {/* ── HOW IT WORKS ── */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28, flexWrap: "wrap", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+            {[
+              { icon: "🌍", step: "1", text: "Pick your team" },
+              { icon: "⚽", step: "2", text: "Simulate every match" },
+              { icon: "📤", step: "3", text: "Share your path" },
+            ].map((s) => (
+              <div key={s.step} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 30, padding: "7px 14px", fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>
+                <span style={{ background: "#FFD700", color: "#000", borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, flexShrink: 0 }}>{s.step}</span>
+                <span style={{ fontSize: 14 }}>{s.icon}</span>
+                <span>{s.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* ── TEAM SELECTOR ── */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+
+            {/* When a team IS selected, show the normal dropdown for easy switching */}
+            {mainTeam && <TeamSelector mainTeam={mainTeam} onChange={handleTeamChange} />}
+
+            {/* Quick-select chips — only show when no team selected */}
+            {!mainTeam && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, width: "100%" }}>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Select your team</div>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 520 }}>
+                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia"].map(team => (
+                    <button key={team} onClick={() => handleTeamChange(team)}
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#ddd"; }}
+                    >
+                      <Flag name={team} size={14} />{team}
+                    </button>
+                  ))}
+                  <OtherTeamsDropdown
+                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia"].includes(t)).sort()}
+                    onSelect={handleTeamChange}
+                  />
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleResetAll}
+              style={{ padding: "5px 18px", background: "transparent", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 20, color: "rgba(248,113,113,0.55)", fontWeight: 600, fontSize: 11, cursor: "pointer", letterSpacing: "0.04em", transition: "all 0.15s" }}
+              onMouseEnter={e => { e.target.style.borderColor = "rgba(248,113,113,0.7)"; e.target.style.color = "#f87171"; }}
+              onMouseLeave={e => { e.target.style.borderColor = "rgba(248,113,113,0.3)"; e.target.style.color = "rgba(248,113,113,0.55)"; }}
+            >
+              Reset All
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ── TABS ── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "18px 16px 0", flexWrap: "wrap" }}>
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setPhase(t.id)} style={{ padding: "9px 22px", borderRadius: 24, border: phase === t.id ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.09)", background: phase === t.id ? "#FFD700" : "rgba(255,255,255,0.04)", color: phase === t.id ? "#000" : "#777", fontWeight: 800, fontSize: 13, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s" }}>
+          <button key={t.id} onClick={() => setPhase(t.id)} style={{ padding: "9px 22px", borderRadius: 24, border: phase === t.id ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.18)", background: phase === t.id ? "#FFD700" : "rgba(255,255,255,0.04)", color: phase === t.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s" }}
+            onMouseEnter={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#fff"; }}}
+            onMouseLeave={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#8fa8c0"; }}}
+          >
             {t.label}
           </button>
         ))}
@@ -1449,7 +1587,7 @@ export default function App() {
             <div style={{ textAlign: "center", margin: "0 0 16px" }}>
               <button
                 onClick={handleConfirmAllGroups}
-                style={{ padding: "6px 18px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#888", fontWeight: 600, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
+                style={{ padding: "6px 18px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#94a8bf", fontWeight: 600, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; }}
                 onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; }}
               >
@@ -1472,7 +1610,7 @@ export default function App() {
                   background: "transparent",
                   border: "1px solid rgba(255,255,255,0.15)",
                   borderRadius: 20,
-                  color: "#888",
+                  color: "#94a8bf",
                   fontWeight: 600,
                   fontSize: 12,
                   cursor: "pointer",
@@ -1490,7 +1628,7 @@ export default function App() {
               <div style={{ marginTop: 26, padding: 20, background: teamFinish === "eliminated" ? "rgba(248,113,113,0.08)" : "rgba(74,222,128,0.07)", border: `2px solid ${teamFinish === "eliminated" ? "rgba(248,113,113,0.35)" : "rgba(74,222,128,0.35)"}`, borderRadius: 14, textAlign: "center" }}>
                 {teamFinish === "winner"     && <p style={{ color: "#4ade80", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>🏆 {mainTeam} wins Group {teamGroup}! → Enter Round of 32</p>}
                 {teamFinish === "runner"     && <p style={{ color: "#4ade80", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>✅ {mainTeam} finishes 2nd in Group {teamGroup} → Enter Round of 32</p>}
-                {teamFinish === "third"      && <p style={{ color: "#f97316", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>⚠️ {mainTeam} finishes 3rd — may advance as best 3rd place</p>}
+                {teamFinish === "third"      && <p style={{ color: "#ef4444", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>⚠️ {mainTeam} finishes 3rd — may advance as best 3rd place</p>}
                 {teamFinish === "eliminated" && <p style={{ color: "#f87171", margin: 0, fontWeight: 700, fontSize: 15 }}>❌ {mainTeam} eliminated in the group stage</p>}
                 {(teamFinish === "winner" || teamFinish === "runner") && (
                   <button onClick={() => setPhase("knockout")} style={{ padding: "11px 32px", background: "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, cursor: "pointer", fontSize: 14 }}>
@@ -1511,6 +1649,7 @@ export default function App() {
             teamFinish={teamFinish}
             teamGroup={teamGroup}
             onChampion={handleChampion}
+            onBackToGroups={() => setPhase("group")}
           />
         )}
 
