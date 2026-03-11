@@ -1,4 +1,3 @@
-"use client";
 import { useState, useRef, useEffect } from "react";
 
 // ─── TEAMS PER GROUP ──────────────────────────────────────────────────────────
@@ -218,7 +217,8 @@ function TeamLabel({ name, size = 14 }) {
 // ─── TEAM SELECTOR — pure native <select> ─────────────────────────────────────
 function TeamSelector({ mainTeam, onChange }) {
   return (
-    <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 10 }}>
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 10, maxWidth: "min(425px, 62.5vw)", width: "100%" }}>
       {/* Live flag preview beside the select */}
       <div style={{ flexShrink: 0, width: 36, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {mainTeam
@@ -228,7 +228,7 @@ function TeamSelector({ mainTeam, onChange }) {
       </div>
 
       {/* Native select — fully accessible, works everywhere */}
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", flex: 1 }}>
         <select
           value={mainTeam || ""}
           onChange={(e) => onChange(e.target.value || null)}
@@ -244,13 +244,13 @@ function TeamSelector({ mainTeam, onChange }) {
             fontWeight: 700,
             cursor: "pointer",
             outline: "none",
-            minWidth: 220,
+            width: "100%",
             backdropFilter: "blur(8px)",
           }}
         >
-          <option value="" style={{ background: "#0d1520", color: "#aaa" }}>— Select Your Team —</option>
+          <option value="" style={{ background: "#0d1520", color: "#aaa" }}>— Select Team —</option>
           {/* Group each team under its group letter for easier navigation */}
-          {Object.entries(GROUPS).map(([g, data]) => (
+          {Object.entries(GROUPS).reverse().map(([g, data]) => (
             <optgroup key={g} label={`Group ${g}`} style={{ background: "#0d1520", color: "#FFD700" }}>
               {data.teams.map((team) => (
                 <option key={team} value={team} style={{ background: "#0d1520", color: "#fff", padding: "6px 12px" }}>
@@ -263,6 +263,7 @@ function TeamSelector({ mainTeam, onChange }) {
         {/* Custom chevron */}
         <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#FFD700", fontSize: 13, fontWeight: 900 }}>▼</span>
       </div>
+    </div>
     </div>
   );
 }
