@@ -1731,8 +1731,8 @@ export default function App() {
               style={{ background: heroMode === "team" ? "rgba(100,160,255,0.1)" : "rgba(255,255,255,0.05)", border: heroMode === "team" ? "2px solid rgba(100,160,255,0.6)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "team" ? "0 0 24px rgba(100,160,255,0.12)" : "none", opacity: heroMode === "venue" ? 0.5 : 1 }}>
               {heroMode === "team" && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#7ab8ff", borderRadius: "16px 16px 0 0" }} />}
               <div style={{ fontSize: 28, marginBottom: 10 }}>⚽</div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: heroMode === "team" ? "#7ab8ff" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Simulate a Team's Path</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Pick any team and map their full journey — every possible match from group stage to the final.</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: heroMode === "team" ? "#7ab8ff" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Simulate a Team's Path</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Pick any team and map their full journey — every possible match from group stage to the final.</div>
               {heroMode === "team" && <div style={{ marginTop: 12, fontSize: 10, color: "#7ab8ff", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>▼ See options below</div>}
             </button>
 
@@ -1741,8 +1741,8 @@ export default function App() {
               style={{ background: heroMode === "venue" ? "rgba(255,215,0,0.12)" : "rgba(255,255,255,0.05)", border: heroMode === "venue" ? "2px solid rgba(255,215,0,0.7)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "venue" ? "0 0 24px rgba(255,215,0,0.15)" : "none", opacity: heroMode === "team" ? 0.5 : 1 }}>
               {heroMode === "venue" && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#FFD700", borderRadius: "16px 16px 0 0" }} />}
               <div style={{ fontSize: 28, marginBottom: 10 }}>🎟️</div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: heroMode === "venue" ? "#FFD700" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Browse Games by Round / Venue</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Explore knockout games by city and date. See every team that could play at each game.</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: heroMode === "venue" ? "#FFD700" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Browse Games by Round / Venue</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Explore knockout games by city and date. See every team that could play at each game.</div>
               {heroMode === "venue" && <div style={{ marginTop: 12, fontSize: 10, color: "#FFD700", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>▼ See options below</div>}
             </button>
           </div>
