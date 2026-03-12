@@ -448,6 +448,7 @@ function TicketPrices({ round, city, teams }) {
     <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: 18, marginTop: 14 }}>
       <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>🎫 Estimated Ticket Prices</div>
       <div style={{ fontSize: 12, color: "#8fa8c0", marginBottom: 14 }}>{teams} · {city}</div>
+      {/* PRICES HIDDEN — re-enable when ready
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
         {Object.entries(prices).map(([pl, price]) => (
           <a key={pl} href={links[pl]} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
@@ -465,6 +466,7 @@ function TicketPrices({ round, city, teams }) {
         <span style={{ color: "#4ade80", fontSize: 13, fontWeight: 700 }}>💡 Best: {meta[cheapest[0]].name} from ${cheapest[1]}</span>
         <div style={{ color: "#444", fontSize: 10, marginTop: 4 }}>*Group stage prices from current 2026 resale listings. Knockout estimates based on round & city. Tap to see live rates.</div>
       </div>
+      */}
     </div>
   );
 }
@@ -653,9 +655,10 @@ function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incomplete
             ← {backLabel || "Back"}
           </button>
         )}
-        <button onClick={handleContinue} style={{ flex: 1, padding: "13px 0", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", transition: "all 0.15s" }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,215,0,0.35)"; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+        <button onClick={handleContinue}
+          style={{ flex: 1, padding: "13px 0", background: incomplete ? "linear-gradient(135deg,#FFD700,#FFA500)" : "linear-gradient(135deg,#4ade80,#22c55e)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", transition: "all 0.4s", boxShadow: incomplete ? "none" : "0 0 20px rgba(74,222,128,0.35)" }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
         >
           {label}
         </button>
@@ -1271,7 +1274,7 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
         }
       </div>
 
-      <p style={{ textAlign: "center", color: "#444", fontSize: 12, marginBottom: 16 }}>👆 Tap any match to see estimated ticket prices</p>
+      <p style={{ textAlign: "center", color: "#444", fontSize: 12, marginBottom: 16 }}>👆 Tap any match to get tickets</p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
         {matches.map((m, i) => {
@@ -1298,7 +1301,28 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
                   <span style={{ color: open ? "#FFD700" : "#2a2a3a", fontSize: 16 }}>{open ? "▲" : "▼"}</span>
                 </div>
               </div>
-              {open && <TicketPrices round={m.round} city={m.city} teams={`${mainTeam} vs ${m.opp}`} />}
+              {open && (() => {
+                const q = encodeURIComponent(`FIFA World Cup 2026 ${m.city}`);
+                return (
+                  <div onClick={e => e.stopPropagation()} style={{ marginTop: 16, borderTop: "1px solid rgba(255,215,0,0.15)", paddingTop: 16 }}>
+                    <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, padding: "14px 16px" }}>
+                      <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>🎫 Get Tickets</div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <a href={`https://www.stubhub.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s" }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "#00f0c0"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "#00d4aa"; e.currentTarget.style.transform = "translateY(0)"; }}
+                        >🎫 StubHub</a>
+                        <a href={`https://www.vividseats.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
+                          style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s", border: "1px solid rgba(168,85,247,0.4)" }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,0.28)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,0.15)"; e.currentTarget.style.transform = "translateY(0)"; }}
+                        >🎟️ Vivid Seats</a>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
@@ -1407,15 +1431,13 @@ const KNOCKOUT_VENUES = [
 const ROUND_ORDER = ["Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
 
 function VenueExplorer({ onSelectTeam }) {
-  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [openId, setOpenId] = useState(null);
   const [selectedRound, setSelectedRound] = useState("Round of 16");
 
   const filteredGames = KNOCKOUT_VENUES.filter(g => g.round === selectedRound);
 
-  // For a given game, get all teams that could potentially play there
-  // based on which groups feed into it
   const getPossibleTeams = (game) => {
-    if (game.groups.length === 0) return null; // SF/Final/Bronze depend on results
+    if (game.groups.length === 0) return null;
     const teams = [];
     game.groups.forEach(g => {
       if (GROUPS[g]) GROUPS[g].teams.forEach(t => { if (!teams.includes(t)) teams.push(t); });
@@ -1431,14 +1453,14 @@ function VenueExplorer({ onSelectTeam }) {
           🎟️ Find Your Game
         </h2>
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
-          Pick a knockout game by round and city — see every team that could play there.
+          Tap any game to see possible teams and get tickets.
         </p>
       </div>
 
       {/* Round tabs */}
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {ROUND_ORDER.map(r => (
-          <button key={r} onClick={() => { setSelectedRound(r); setSelectedVenue(null); }}
+          <button key={r} onClick={() => { setSelectedRound(r); setOpenId(null); }}
             style={{ padding: "7px 16px", borderRadius: 20, border: selectedRound === r ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.15)", background: selectedRound === r ? "#FFD700" : "transparent", color: selectedRound === r ? "#000" : "#8fa8c0", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.05em" }}
             onMouseEnter={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
             onMouseLeave={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#8fa8c0"; }}}
@@ -1446,72 +1468,89 @@ function VenueExplorer({ onSelectTeam }) {
         ))}
       </div>
 
-      {/* Game cards grid */}
-      <div className="venue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12, marginBottom: selectedVenue ? 24 : 0 }}>
+      {/* Game cards — each expands in place when clicked */}
+      <div className="venue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
         {filteredGames.map(game => {
-          const isSelected = selectedVenue?.id === game.id;
+          const open = openId === game.id;
+          const teams = open ? getPossibleTeams(game) : null;
+          const kBase = { "Round of 32": 600, "Round of 16": 1000, "Quarterfinal": 1600, "Semifinal": 2600, "Third Place": 850, "Final": 5605 }[game.round] || 600;
+          const q = encodeURIComponent(`FIFA World Cup 2026 ${game.city}`);
           return (
-            <button key={game.id} onClick={() => setSelectedVenue(isSelected ? null : game)}
-              style={{ background: isSelected ? "rgba(255,215,0,0.1)" : "rgba(255,255,255,0.04)", border: isSelected ? "2px solid rgba(255,215,0,0.6)" : "2px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 18px", textAlign: "left", cursor: "pointer", transition: "all 0.15s" }}
-              onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.35)"; e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}}
-              onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}}
+            <div key={game.id} onClick={() => setOpenId(open ? null : game.id)}
+              style={{ background: open ? "rgba(255,215,0,0.07)" : "rgba(255,255,255,0.04)", border: open ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => { if (!open) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.35)"; e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}}
+              onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}}
             >
+              {/* Card header — always visible */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <span style={{ background: isSelected ? "#FFD700" : "rgba(255,215,0,0.15)", color: isSelected ? "#000" : "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>{game.round}</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{game.time}</span>
+                <span style={{ background: open ? "#FFD700" : "rgba(255,215,0,0.15)", color: open ? "#000" : "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>{game.round}</span>
+                <span style={{ color: open ? "#FFD700" : "rgba(255,255,255,0.3)", fontSize: 14, transition: "all 0.2s" }}>{open ? "▲" : "▼"}</span>
               </div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginBottom: 4 }}>{game.city}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 6 }}>📍 {game.stadium}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>📅 {game.date}</div>
-            </button>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>📍 {game.stadium}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>📅 {game.date} · {game.time}</div>
+                {!open && <span style={{ fontSize: 10, color: "rgba(255,215,0,0.5)", fontWeight: 700 }}>Tap for 🎫</span>}
+              </div>
+
+              {/* Expanded content — inline, same as Summary tab */}
+              {open && (
+                <div onClick={e => e.stopPropagation()} style={{ marginTop: 16, borderTop: "1px solid rgba(255,215,0,0.15)", paddingTop: 16 }}>
+
+                  {/* Ticket CTA */}
+                  <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>🎫 Get Tickets</div>
+                    {/* PRICE ESTIMATE HIDDEN — re-enable when ready
+                    <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, margin: "0 0 12px" }}>
+                      {game.round} in {game.city} — from ~<strong style={{ color: "#fff" }}>${kBase.toLocaleString()}</strong>
+                    </p>
+                    */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <a href={`https://www.stubhub.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "#00f0c0"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "#00d4aa"; e.currentTarget.style.transform = "translateY(0)"; }}
+                      >🎫 StubHub</a>
+                      <a href={`https://www.vividseats.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s", border: "1px solid rgba(168,85,247,0.4)" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,0.28)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,0.15)"; e.currentTarget.style.transform = "translateY(0)"; }}
+                      >🎟️ Vivid Seats</a>
+                    </div>
+                    {/* DISCLAIMER HIDDEN — re-enable with prices
+                    <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 10, margin: "8px 0 0", fontStyle: "italic" }}>Price estimates only. Final teams TBD.</p>
+                    */}
+                  </div>
+
+                  {/* Possible teams */}
+                  {teams ? (
+                    <>
+                      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: "0 0 10px" }}>
+                        <strong style={{ color: "#fff" }}>{teams.length} teams</strong> could play here. Tap to simulate their path:
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {teams.map(team => (
+                          <button key={team} onClick={() => onSelectTeam(team)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
+                          >
+                            <Flag name={team} size={14} />{team}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, margin: 0 }}>
+                      Teams depend on earlier results. Simulate a team's path to see if they reach {game.city}.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
-
-      {/* Expanded panel — possible teams */}
-      {selectedVenue && (() => {
-        const teams = getPossibleTeams(selectedVenue);
-        return (
-          <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 16, padding: "24px 20px", marginTop: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 900, color: "#FFD700", marginBottom: 2 }}>{selectedVenue.city} · {selectedVenue.date}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>📍 {selectedVenue.stadium} · {selectedVenue.time}</div>
-              </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "6px 12px", textAlign: "center" }}>
-                <div style={{ fontWeight: 800, color: "#fff", fontSize: 18 }}>{teams ? teams.length : "?"}</div>
-                <div style={{ letterSpacing: "0.06em", textTransform: "uppercase", fontSize: 10 }}>possible teams</div>
-              </div>
-            </div>
-
-            {teams ? (
-              <>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: "0 0 14px" }}>
-                  Based on the official bracket, any of these <strong style={{ color: "#fff" }}>{teams.length} teams</strong> could play at this game. Click a team to simulate their path.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                  {teams.map(team => (
-                    <button key={team} onClick={() => onSelectTeam(team)}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
-                    >
-                      <Flag name={team} size={16} />{team}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, margin: "14px 0 0", letterSpacing: "0.04em" }}>
-                  ↑ Select any team above to simulate their path to this game
-                </p>
-              </>
-            ) : (
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13 }}>
-                The teams for {selectedVenue.round} games depend on earlier round results. Use the Group Stage and Knockout tabs to simulate your team's path and see if they can reach {selectedVenue.city}.
-              </p>
-            )}
-          </div>
-        );
-      })()}
     </div>
   );
 }
@@ -1531,16 +1570,20 @@ export default function App() {
     setAllGroupStandings((p) => ({ ...p, [g]: { winner, runner, third } }));
 
   // Confirm all 12 groups at once using their current displayed order (default = original order)
+  const continueKnockoutRef = React.useRef(null);
+
   const handleConfirmAllGroups = () => {
     const updates = {};
     Object.entries(GROUPS).forEach(([g, data]) => {
-      // Only set groups that haven't been manually confirmed yet, using the default team order
       if (!allGroupStandings[g]) {
         const [winner, runner, third] = data.teams;
         updates[g] = { winner, runner, third };
       }
     });
     setAllGroupStandings((p) => ({ ...p, ...updates }));
+    setTimeout(() => {
+      continueKnockoutRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
   };
 
   // Reset everything back to initial state
@@ -1603,20 +1646,12 @@ export default function App() {
           from { opacity: 0; }
           to   { opacity: 1; }
         }
-        @keyframes revealDown {
-          from { opacity: 0; transform: translateY(28px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .reveal-section { animation: revealDown 0.45s cubic-bezier(0.22,1,0.36,1) both; }
-        .split-card { transition: all 0.2s ease; }
-        .split-card:hover { transform: translateY(-3px); }
         @media (max-width: 520px) {
           .chip-grid { gap: 5px !important; max-width: 100% !important; }
           .chip-btn  { font-size: 11px !important; padding: 4px 8px !important; }
           .hero-eyebrow { font-size: 9px !important; gap: 5px !important; flex-wrap: wrap; justify-content: center; }
           .tab-bar { gap: 5px !important; padding: 14px 10px 0 !important; }
           .venue-grid { grid-template-columns: 1fr !important; }
-          .split-cards { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -1719,35 +1754,42 @@ export default function App() {
           <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,2.8rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase", textShadow: "0 2px 24px rgba(255,215,0,0.5)", lineHeight: 1.1, animation: "fadeSlideUp 0.7s ease both" }}>
             Every Possible Path. One Decision.
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.82)", margin: "0 0 28px", fontSize: "clamp(0.95rem,2.2vw,1.1rem)", fontWeight: 400, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5, animation: "fadeSlideUp 0.7s ease 0.15s both" }}>
+          <p style={{ color: "rgba(255,255,255,0.82)", margin: "0 0 6px", fontSize: "clamp(0.95rem,2.2vw,1.1rem)", fontWeight: 400, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5, animation: "fadeSlideUp 0.7s ease 0.15s both" }}>
             See every possible matchup for your World Cup knockout game.
           </p>
 
-          {/* ── SPLIT ENTRY CARDS ── */}
-          <div className="split-cards" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 640, margin: "0 auto 20px", animation: "fadeSlideUp 0.7s ease 0.28s both" }}>
 
-            {/* Card 1: Simulate a Team */}
-            <button className="split-card" onClick={() => { setHeroMode("team"); setPhase("group"); }}
-              style={{ background: heroMode === "team" ? "rgba(100,160,255,0.1)" : "rgba(255,255,255,0.05)", border: heroMode === "team" ? "2px solid rgba(100,160,255,0.6)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "team" ? "0 0 24px rgba(100,160,255,0.12)" : "none", opacity: heroMode === "venue" ? 0.5 : 1 }}>
+          {/* ── SPLIT ENTRY CARDS ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 620, margin: "0 auto 20px", animation: "fadeSlideUp 0.7s ease 0.28s both" }}>
+
+            {/* Card: Simulate a Team */}
+            <button onClick={() => { setHeroMode("team"); setPhase("group"); }}
+              style={{ background: heroMode === "team" ? "rgba(100,160,255,0.1)" : "rgba(255,255,255,0.05)", border: heroMode === "team" ? "2px solid rgba(100,160,255,0.6)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "team" ? "0 0 24px rgba(100,160,255,0.12)" : "none", opacity: heroMode === "venue" ? 0.45 : 1, transition: "all 0.2s" }}
+              onMouseEnter={e => { if (heroMode !== "team") { e.currentTarget.style.background = "rgba(100,160,255,0.07)"; e.currentTarget.style.borderColor = "rgba(100,160,255,0.4)"; }}}
+              onMouseLeave={e => { if (heroMode !== "team") { e.currentTarget.style.background = heroMode === "venue" ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = heroMode === "venue" ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.12)"; }}}
+            >
               {heroMode === "team" && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#7ab8ff", borderRadius: "16px 16px 0 0" }} />}
               <div style={{ fontSize: 28, marginBottom: 10 }}>⚽</div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: heroMode === "team" ? "#7ab8ff" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Simulate a Team's Path</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Pick any team and map their full journey — every possible match from group stage to the final.</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: heroMode === "team" ? "#7ab8ff" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Simulate a Team's Path</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Pick any team and map their full journey — every possible match from group stage to the final.</div>
               {heroMode === "team" && <div style={{ marginTop: 12, fontSize: 10, color: "#7ab8ff", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>▼ See options below</div>}
             </button>
 
-            {/* Card 2: Browse by Venue */}
-            <button className="split-card" onClick={() => { setHeroMode("venue"); setPhase("venue"); }}
-              style={{ background: heroMode === "venue" ? "rgba(255,215,0,0.12)" : "rgba(255,255,255,0.05)", border: heroMode === "venue" ? "2px solid rgba(255,215,0,0.7)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "venue" ? "0 0 24px rgba(255,215,0,0.15)" : "none", opacity: heroMode === "team" ? 0.5 : 1 }}>
+            {/* Card: Browse Games by Venue */}
+            <button onClick={() => { setHeroMode("venue"); setPhase("venue"); }}
+              style={{ background: heroMode === "venue" ? "rgba(255,215,0,0.12)" : "rgba(255,255,255,0.05)", border: heroMode === "venue" ? "2px solid rgba(255,215,0,0.7)" : "2px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "22px 20px", textAlign: "left", cursor: "pointer", position: "relative", overflow: "hidden", boxShadow: heroMode === "venue" ? "0 0 24px rgba(255,215,0,0.15)" : "none", opacity: heroMode === "team" ? 0.45 : 1, transition: "all 0.2s" }}
+              onMouseEnter={e => { if (heroMode !== "venue") { e.currentTarget.style.background = "rgba(255,215,0,0.07)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; }}}
+              onMouseLeave={e => { if (heroMode !== "venue") { e.currentTarget.style.background = heroMode === "team" ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = heroMode === "team" ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.12)"; }}}
+            >
               {heroMode === "venue" && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#FFD700", borderRadius: "16px 16px 0 0" }} />}
               <div style={{ fontSize: 28, marginBottom: 10 }}>🎟️</div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: heroMode === "venue" ? "#FFD700" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Browse Games by Round / Venue</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Explore knockout games by city and date. See every team that could play at each game.</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: heroMode === "venue" ? "#FFD700" : "#e0e0e0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 7 }}>Browse Games by Round / Venue</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>Explore knockout games by city and date. See every team that could play at each game.</div>
               {heroMode === "venue" && <div style={{ marginTop: 12, fontSize: 10, color: "#FFD700", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>▼ See options below</div>}
             </button>
           </div>
 
-          {/* Reset — only show when something is active */}
+          {/* Reset */}
           {heroMode && (
             <div style={{ animation: "fadeIn 0.3s ease both" }}>
               <button onClick={handleResetAll}
@@ -1760,52 +1802,41 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── SECONDARY TABS (deep navigation only) ── */}
-      {heroMode && (
+      {/* ── TABS (team mode only) ── */}
+      {heroMode === "team" && (
         <div className="tab-bar" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "16px 16px 0", flexWrap: "wrap", animation: "fadeIn 0.3s ease both" }}>
-          {heroMode === "team" ? (
-            // Team mode tabs
-            TABS.filter(t => t.id !== "venue").map((t) => (
-              <button key={t.id} onClick={() => setPhase(t.id)}
-                style={{ padding: "8px 18px", borderRadius: 24, border: phase === t.id ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.18)", background: phase === t.id ? "#FFD700" : "rgba(255,255,255,0.04)", color: phase === t.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 12, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s" }}
-                onMouseEnter={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#fff"; }}}
-                onMouseLeave={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#8fa8c0"; }}}
-              >{t.label}</button>
-            ))
-          ) : (
-            // Venue mode — no sub-tabs needed, just a back option
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Browse knockout games below</span>
-          )}
+          {TABS.filter(t => t.id !== "venue").map((t) => (
+            <button key={t.id} onClick={() => setPhase(t.id)}
+              style={{ padding: "9px 20px", borderRadius: 24, border: phase === t.id ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.18)", background: phase === t.id ? "#FFD700" : "rgba(255,255,255,0.04)", color: phase === t.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s" }}
+              onMouseEnter={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#fff"; }}}
+              onMouseLeave={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#8fa8c0"; }}}
+            >{t.label}</button>
+          ))}
         </div>
       )}
 
-      {/* ── PROGRESSIVE CONTENT ── */}
+      {/* ── CONTENT ── */}
       <div style={{ maxWidth: 940, margin: "0 auto", padding: "24px 14px 70px" }}>
 
-        {/* Nothing selected yet */}
         {!heroMode && (
-          <div style={{ textAlign: "center", padding: "48px 20px", animation: "fadeIn 0.5s ease both" }}>
-            <div style={{ fontSize: 40, marginBottom: 14 }}>👆</div>
-            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Choose an option above to get started</p>
+          <div style={{ textAlign: "center", padding: "40px 20px", animation: "fadeIn 0.5s ease both" }}>
+            <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>Choose an option above to get started</p>
           </div>
         )}
 
-        {/* VENUE EXPLORER */}
         {heroMode === "venue" && (
-          <div className="reveal-section">
+          <div style={{ animation: "fadeSlideUp 0.4s ease both" }}>
             <VenueExplorer onSelectTeam={(team) => { handleTeamChange(team); setHeroMode("team"); setPhase("group"); }} />
           </div>
         )}
 
-        {/* TEAM MODE CONTENT */}
         {heroMode === "team" && (
-          <div className="reveal-section">
+          <div style={{ animation: "fadeSlideUp 0.4s ease both" }}>
 
-            {/* Team picker — shown when no team selected */}
             {!mainTeam && (
               <div style={{ textAlign: "center", marginBottom: 28 }}>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14, fontWeight: 700 }}>Pick a team to simulate</p>
-                <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 560, margin: "0 auto" }}>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14, fontWeight: 700 }}>Pick a team to simulate</p>
+                <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 540, margin: "0 auto" }}>
                   {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].map(team => (
                     <button key={team} onClick={() => handleTeamChange(team)}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
@@ -1821,16 +1852,14 @@ export default function App() {
               </div>
             )}
 
-            {/* Team selected — show switcher + flag */}
             {mainTeam && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginBottom: 20 }}>
-                <Flag name={mainTeam} size={36} />
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <Flag name={mainTeam} size={32} />
                 <span style={{ color: "#fff", fontWeight: 800, fontSize: 15 }}>{mainTeam}</span>
                 <TeamSelector mainTeam={mainTeam} onChange={handleTeamChange} />
               </div>
             )}
 
-            {/* GROUP STAGE */}
             {phase === "group" && (
               <div>
                 {!mainTeam && (
@@ -1852,7 +1881,7 @@ export default function App() {
                   <button onClick={handleConfirmAllGroups}
                     style={{ padding: "6px 18px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#94a8bf", fontWeight: 600, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
                     onMouseEnter={e => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; }}
+                    onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#94a8bf"; }}
                   >Auto-Confirm All Groups</button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
@@ -1866,11 +1895,15 @@ export default function App() {
                     {teamFinish === "runner"     && <p style={{ color: "#4ade80", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>✅ {mainTeam} finishes 2nd in Group {teamGroup} → Enter Round of 32</p>}
                     {teamFinish === "third"      && <p style={{ color: "#ef4444", margin: "0 0 14px", fontWeight: 700, fontSize: 15 }}>⚠️ {mainTeam} finishes 3rd — may advance as best 3rd place</p>}
                     {teamFinish === "eliminated" && <p style={{ color: "#f87171", margin: 0, fontWeight: 700, fontSize: 15 }}>❌ {mainTeam} eliminated in the group stage</p>}
-                    {(teamFinish === "winner" || teamFinish === "runner") && (
-                      <button onClick={() => setPhase("knockout")} style={{ padding: "11px 32px", background: "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, cursor: "pointer", fontSize: 14 }}>
-                        Continue to Knockout Rounds →
-                      </button>
-                    )}
+                    {(teamFinish === "winner" || teamFinish === "runner") && (() => {
+                      const allConfirmed = Object.keys(GROUPS).every(g => allGroupStandings[g]);
+                      return (
+                        <button ref={continueKnockoutRef} onClick={() => setPhase("knockout")}
+                          style={{ padding: "11px 32px", background: allConfirmed ? "#4ade80" : "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, cursor: "pointer", fontSize: 14, transition: "all 0.4s", boxShadow: allConfirmed ? "0 0 20px rgba(74,222,128,0.4)" : "none" }}>
+                          Continue to Knockout Rounds →
+                        </button>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -1898,7 +1931,6 @@ export default function App() {
                 teamGroup={teamGroup}
               />
             )}
-
           </div>
         )}
 
