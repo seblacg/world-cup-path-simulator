@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // ─── TEAMS PER GROUP ──────────────────────────────────────────────────────────
 const GROUPS = {
@@ -667,9 +667,203 @@ function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incomplete
   );
 }
 
+// ─── BRACKET VIEW ─────────────────────────────────────────────────────────────
+function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, mainTeam, onChampion }) {
+  const [showSnapshot, setShowSnapshot] = useState(false);
+
+  const gs  = (g, pos) => { const s = allGroupStandings[g]; if (!s) return `${pos === "winner" ? "W" : "RU"} Grp ${g}`; return s[pos] || "?"; };
+  const rr  = (src) => {
+    if (src.type === "winner") return gs(src.g, "winner");
+    if (src.type === "runner") return gs(src.g, "runner");
+    for (const g of src.gs) { const t = allGroupStandings[g]?.third; if (t) return t; }
+    return "?";
+  };
+  const mw  = (id) => knockoutWinners[id] || null;
+  const sw  = (id, team) => { setKnockoutWinners((p) => ({ ...p, [id]: team })); if (id === 104) onChampion(team); };
+
+  const r32Teams = R32.map(m => ({ id: m.id, t1: rr(m.t1), t2: rr(m.t2), date: m.date, city: m.city }));
+  const r16Teams = R16.map(m => ({ id: m.id, t1: mw(m.m1) || "?", t2: mw(m.m2) || "?", date: m.date, city: m.city }));
+  const qfTeams  = QF.map(m  => ({ id: m.id, t1: mw(m.m1) || "?", t2: mw(m.m2) || "?", date: m.date, city: m.city }));
+  const sfTeams  = SF.map(m  => ({ id: m.id, t1: mw(m.m1) || "?", t2: mw(m.m2) || "?", date: m.date, city: m.city }));
+  const sf1w = mw(101), sf2w = mw(102);
+  const sf1t1 = mw(SF[0].m1)||"?", sf1t2 = mw(SF[0].m2)||"?";
+  const sf2t1 = mw(SF[1].m1)||"?", sf2t2 = mw(SF[1].m2)||"?";
+
+  const rounds = [
+    { key: "r32",   label: "Round of 32", matches: r32Teams },
+    { key: "r16",   label: "Round of 16", matches: r16Teams },
+    { key: "qf",    label: "Quarters",    matches: qfTeams  },
+    { key: "sf",    label: "Semis",       matches: sfTeams  },
+    { key: "final", label: "Final",       matches: [{ id: 104, t1: sf1w||"?", t2: sf2w||"?", date: "Jul 19", city: "New York/NJ" }] },
+  ];
+
+  const isPlaceholder = (n) => !n || n === "?" || n.startsWith("W ") || n.startsWith("RU ");
+
+  // Shared match card — used in both scrollable and snapshot views
+  const BracketMatch = ({ match, compact = false }) => {
+    const w = mw(match.id);
+    const t1won = w === match.t1;
+    const t2won = w === match.t2;
+    const t1main = match.t1 === mainTeam;
+    const t2main = match.t2 === mainTeam;
+    const hasWinner = !!w;
+    const isMain = t1main || t2main || w === mainTeam;
+
+    const cardW = compact ? 108 : 134;
+    const fontSize = compact ? 9 : 11;
+    const flagSize = compact ? 11 : 13;
+    const rowPad = compact ? "4px 6px" : "6px 8px";
+
+    const TeamRow = ({ team, won, lost, isMainTeam }) => {
+      const color = won
+        ? (isMainTeam ? "#4ade80" : "#4ade80")   // always green when selected
+        : lost
+          ? "#33404a"                              // greyed out when lost
+          : isMainTeam ? "#86efac" : "#bcc8d4";   // default states
+
+      const bg = won
+        ? (isMainTeam ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.12)")
+        : "transparent";
+
+      return (
+        <button
+          onClick={() => !isPlaceholder(team) && sw(match.id, team)}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            width: "100%", padding: rowPad,
+            background: bg, border: "none", borderRadius: 5,
+            cursor: isPlaceholder(team) ? "default" : "pointer",
+            transition: "all 0.15s", textAlign: "left",
+            opacity: lost ? 0.38 : 1,
+          }}
+          onMouseEnter={e => { if (!isPlaceholder(team) && !won) e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
+          onMouseLeave={e => { if (!won) e.currentTarget.style.background = bg; }}
+        >
+          {!isPlaceholder(team) && <Flag name={team} size={flagSize} />}
+          <span style={{
+            fontSize, fontWeight: won ? 800 : 600, color,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            maxWidth: compact ? 70 : 88,
+          }}>{team || "?"}</span>
+          {won && <span style={{ marginLeft: "auto", fontSize: compact ? 8 : 10, color: "#4ade80" }}>✓</span>}
+        </button>
+      );
+    };
+
+    return (
+      <div style={{
+        background: isMain ? "rgba(74,222,128,0.05)" : "rgba(255,255,255,0.04)",
+        border: isMain
+          ? (hasWinner ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(74,222,128,0.25)")
+          : "1px solid rgba(255,255,255,0.09)",
+        borderRadius: 7, overflow: "hidden",
+        width: cardW, minWidth: cardW,
+        transition: "border-color 0.15s",
+      }}>
+        <div style={{ fontSize: compact ? 8 : 9, color: "#445", padding: compact ? "2px 6px" : "3px 8px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 600, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {match.city}
+        </div>
+        <TeamRow team={match.t1} won={t1won} lost={hasWinner && !t1won} isMainTeam={t1main} />
+        <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: compact ? "0 6px" : "0 8px" }} />
+        <TeamRow team={match.t2} won={t2won} lost={hasWinner && !t2won} isMainTeam={t2main} />
+      </div>
+    );
+  };
+
+  // Shared bracket layout — renders all rounds spaced evenly
+  const BracketLayout = ({ compact = false }) => {
+    const slotH = compact ? 66 : 88;
+    const gap   = compact ? 14 : 20;
+    const totalSlots = 32;
+    const totalH = totalSlots * slotH;
+
+    return (
+      <div style={{ display: "flex", gap, alignItems: "flex-start", minWidth: "max-content", padding: compact ? "4px 2px" : "8px 4px" }}>
+        {rounds.map((round) => {
+          const matchCount = round.matches.length;
+          const spacing = totalH / matchCount;
+          const cardH = compact ? 58 : 74;
+          return (
+            <div key={round.key} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ fontSize: compact ? 8 : 10, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 6 : 10, textAlign: "center", whiteSpace: "nowrap" }}>
+                {round.label}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {round.matches.map((match, mi) => (
+                  <div key={match.id} style={{ paddingTop: mi === 0 ? (spacing - cardH) / 2 : spacing - cardH }}>
+                    <BracketMatch match={match} compact={compact} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        {/* Champion */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ fontSize: compact ? 8 : 10, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 6 : 10, textAlign: "center" }}>🏆</div>
+          <div style={{ marginTop: totalH / 2 - (compact ? 28 : 35) }}>
+            {mw(104) ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 4 : 8, padding: compact ? "8px 10px" : "12px 16px", background: "rgba(74,222,128,0.13)", border: "2px solid rgba(74,222,128,0.5)", borderRadius: 10 }}>
+                <Flag name={mw(104)} size={compact ? 20 : 28} />
+                <span style={{ fontSize: compact ? 9 : 12, fontWeight: 900, color: "#4ade80" }}>{mw(104)}</span>
+              </div>
+            ) : (
+              <div style={{ padding: compact ? "8px 10px" : "12px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#445", fontSize: compact ? 9 : 11, fontWeight: 600 }}>TBD</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {/* Snapshot modal */}
+      {showSnapshot && (
+        <div
+          onClick={() => setShowSnapshot(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 3000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background: "#070b12", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px 16px 12px", maxWidth: "98vw", maxHeight: "92vh", overflow: "auto", boxShadow: "0 0 60px rgba(0,0,0,0.9)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.1em" }}>🏟️ Full Bracket Snapshot</span>
+              <button onClick={() => setShowSnapshot(false)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#aaa", fontSize: 13, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>✕ Close</button>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <BracketLayout compact={true} />
+            </div>
+            <p style={{ fontSize: 10, color: "#334", textAlign: "center", marginTop: 10, marginBottom: 0 }}>Tap any team to pick a winner · Tap outside to close</p>
+          </div>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+        <button
+          onClick={() => setShowSnapshot(true)}
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#8fa8c0", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", letterSpacing: "0.04em" }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#FFD700"; e.currentTarget.style.background = "rgba(255,215,0,0.08)"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#8fa8c0"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+        >
+          🔍 Full Snapshot
+        </button>
+      </div>
+
+      {/* Scrollable bracket */}
+      <div style={{ overflowX: "auto", paddingBottom: 16 }}>
+        <BracketLayout compact={false} />
+      </div>
+      <p style={{ fontSize: 11, color: "#334", textAlign: "center", marginTop: 8 }}>
+        Tap any team to pick winner · Scroll right to see all rounds · 🔍 Full Snapshot to see everything at once
+      </p>
+    </>
+  );
+}
+
 // ─── KNOCKOUT PHASE ────────────────────────────────────────────────────────────
 function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners, mainTeam, teamFinish, teamGroup, onChampion, onBackToGroups }) {
   const [activeRound, setActiveRound] = useState("r32");
+  const [viewMode, setViewMode] = useState("path"); // "path" | "bracket"
 
   const gs  = (g, pos) => { const s = allGroupStandings[g]; if (!s) return `${pos === "winner" ? "Winner" : pos === "runner" ? "Runner" : "3rd"} Grp ${g}`; return s[pos] || "Other"; };
   const rr  = (src) => {
@@ -810,6 +1004,31 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
         </div>
       </div>
 
+      {/* View toggle */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+        <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 24, padding: 3, border: "1px solid rgba(255,255,255,0.1)" }}>
+          {[{ id: "path", label: "🎯 My Path" }, { id: "bracket", label: "🏟️ Full Bracket" }].map(v => (
+            <button key={v.id} onClick={() => setViewMode(v.id)}
+              style={{ padding: "7px 18px", borderRadius: 20, border: "none", background: viewMode === v.id ? "#FFD700" : "transparent", color: viewMode === v.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 12, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em" }}
+            >{v.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* BRACKET VIEW */}
+      {viewMode === "bracket" && (
+        <BracketView
+          allGroupStandings={allGroupStandings}
+          knockoutWinners={knockoutWinners}
+          setKnockoutWinners={setKnockoutWinners}
+          mainTeam={mainTeam}
+          onChampion={onChampion}
+        />
+      )}
+
+      {/* PATH VIEW — round tabs + match cards */}
+      {viewMode === "path" && <>
+
       {/* Round tabs */}
       <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 20 }}>
         {TABS.map((r) => (
@@ -890,6 +1109,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           </div>
         );
       })()}
+      </>}
     </div>
   );
 }
@@ -1398,10 +1618,123 @@ function CelebrationOverlay({ champion, onDismiss, fadingOut }) {
   );
 }
 
+// ─── ELO RATINGS (eloratings.net, March 2026) ─────────────────────────────────
+const ELO = {
+  "Spain": 2172, "Argentina": 2113, "France": 2062, "England": 2042,
+  "Colombia": 1998, "Brazil": 1978, "Portugal": 1976, "Netherlands": 1959,
+  "Ecuador": 1933, "Croatia": 1932, "Norway": 1922, "Germany": 1910,
+  "Switzerland": 1897, "Uruguay": 1890, "Turkey": 1880, "Japan": 1878,
+  "Senegal": 1869, "Denmark": 1864, "Italy": 1859, "Mexico": 1857,
+  "Belgium": 1849, "Paraguay": 1833, "Austria": 1818, "Morocco": 1806,
+  "Canada": 1805, "Ukraine": 1802, "Scotland": 1790, "Korea Republic": 1784,
+  "USA": 1747, "Panama": 1733, "Algeria": 1728, "Uzbekistan": 1728,
+  "Egypt": 1659, "Bolivia/Iraq/Suriname": 1582, "Congo DR": 1639,
+  "Saudi Arabia": 1592, "Cabo Verde": 1561, "Ghana": 1509, "Haiti": 1542,
+  "South Africa": 1528, "Qatar": 1425, "Jordan": 1689, "New Zealand": 1585,
+  "Australia": 1774, "Côte d'Ivoire": 1637, "Curaçao": 1466,
+  "Kosovo/Romania/Slovakia/Türkiye": 1687, "Czechia/Denmark/N.Macedonia/Ireland": 1731,
+  "Bosnia/Italy/N.Ireland/Wales": 1859, "Albania/Poland/Sweden/Ukraine": 1735,
+};
+
+// Elo win probability: P(A beats B)
+const eloWinP = (teamA, teamB) => {
+  const ra = ELO[teamA] || 1500, rb = ELO[teamB] || 1500;
+  return 1 / (1 + Math.pow(10, (rb - ra) / 400));
+};
+
+// Compute group stage finish probabilities via round-robin enumeration
+// Returns { winner: {team: prob}, runner: {team: prob}, third: {team: prob} }
+const computeGroupProbs = (groupKey) => {
+  const teams = GROUPS[groupKey]?.teams;
+  if (!teams || teams.length < 3) return null;
+  const [t1, t2, t3, t4] = teams;
+  const matchups = t4
+    ? [[t1,t2],[t1,t3],[t1,t4],[t2,t3],[t2,t4],[t3,t4]]
+    : [[t1,t2],[t1,t3],[t2,t3]];
+
+  // enumerate all 2^n outcomes (win/loss per match, no draws for simplicity)
+  const n = matchups.length;
+  const pts = {}; teams.forEach(t => pts[t] = 0);
+  const winnerProbs = {}, runnerProbs = {}, thirdProbs = {};
+  teams.forEach(t => { winnerProbs[t]=0; runnerProbs[t]=0; thirdProbs[t]=0; });
+
+  for (let mask = 0; mask < Math.pow(2, n); mask++) {
+    const points = {}; teams.forEach(t => points[t] = 0);
+    let prob = 1;
+    matchups.forEach(([a, b], i) => {
+      const aWins = (mask >> i) & 1;
+      const p = eloWinP(a, b);
+      if (aWins) { points[a] += 3; prob *= p; }
+      else        { points[b] += 3; prob *= (1 - p); }
+    });
+    // sort by points desc, break ties by Elo desc
+    const sorted = [...teams].sort((a,b) =>
+      points[b] !== points[a] ? points[b]-points[a] : (ELO[b]||1500)-(ELO[a]||1500)
+    );
+    winnerProbs[sorted[0]] += prob;
+    runnerProbs[sorted[1]] += prob;
+    if (sorted[2]) thirdProbs[sorted[2]] += prob;
+  }
+  return { winner: winnerProbs, runner: runnerProbs, third: thirdProbs };
+};
+
+// Cache group probs (computed once)
+const GROUP_PROBS = {};
+Object.keys(GROUPS).forEach(g => { GROUP_PROBS[g] = computeGroupProbs(g); });
+
+// Get slot distribution for an R32 slot descriptor
+const getSlotDist = (slot) => {
+  if (slot.type === "winner") return GROUP_PROBS[slot.g]?.winner || {};
+  if (slot.type === "runner") return GROUP_PROBS[slot.g]?.runner || {};
+  if (slot.type === "third") {
+    // merge third-place distributions across the candidate groups
+    const merged = {};
+    (slot.gs || []).forEach(g => {
+      const tp = GROUP_PROBS[g]?.third || {};
+      Object.entries(tp).forEach(([team, p]) => {
+        merged[team] = (merged[team] || 0) + p / (slot.gs.length);
+      });
+    });
+    return merged;
+  }
+  return {};
+};
+
+// Compute top N most likely matchups for an R32 match
+const getTopMatchups = (r32match, topN = 4) => {
+  const dist1 = getSlotDist(r32match.t1);
+  const dist2 = getSlotDist(r32match.t2);
+  const matchups = [];
+  Object.entries(dist1).forEach(([teamA, pA]) => {
+    Object.entries(dist2).forEach(([teamB, pB]) => {
+      if (teamA === teamB) return;
+      const pMatch = pA * pB;
+      if (pMatch < 0.001) return;
+      matchups.push({ teamA, teamB, prob: pMatch });
+    });
+  });
+  return matchups.sort((a,b) => b.prob - a.prob).slice(0, topN);
+};
+
 // ─── KNOCKOUT VENUE DATA ───────────────────────────────────────────────────────
-// All knockout games: Round of 16, QF, SF, Final, Bronze
-// Teams listed are the groups/paths that feed each match (from official FIFA schedule)
 const KNOCKOUT_VENUES = [
+  // ── ROUND OF 32 ──
+  { id: "r32-73",  round: "Round of 32", date: "Sat Jun 28", time: "3pm ET",  city: "Los Angeles, CA",      stadium: "SoFi Stadium",              r32id: 73  },
+  { id: "r32-74",  round: "Round of 32", date: "Sun Jun 29", time: "12pm ET", city: "Boston, MA",           stadium: "Gillette Stadium",          r32id: 74  },
+  { id: "r32-75",  round: "Round of 32", date: "Sun Jun 29", time: "3pm ET",  city: "Monterrey, Mexico",    stadium: "Estadio BBVA",              r32id: 75  },
+  { id: "r32-76",  round: "Round of 32", date: "Sun Jun 29", time: "6pm ET",  city: "Houston, TX",          stadium: "NRG Stadium",               r32id: 76  },
+  { id: "r32-77",  round: "Round of 32", date: "Mon Jun 30", time: "12pm ET", city: "New York/NJ",          stadium: "MetLife Stadium",           r32id: 77  },
+  { id: "r32-78",  round: "Round of 32", date: "Mon Jun 30", time: "3pm ET",  city: "Dallas, TX",           stadium: "AT&T Stadium",              r32id: 78  },
+  { id: "r32-79",  round: "Round of 32", date: "Mon Jun 30", time: "6pm ET",  city: "Mexico City, Mexico",  stadium: "Estadio Azteca",            r32id: 79  },
+  { id: "r32-80",  round: "Round of 32", date: "Tue Jul 1",  time: "12pm ET", city: "Atlanta, GA",          stadium: "Mercedes-Benz Stadium",     r32id: 80  },
+  { id: "r32-81",  round: "Round of 32", date: "Tue Jul 1",  time: "3pm ET",  city: "San Francisco, CA",    stadium: "Levi's Stadium",            r32id: 81  },
+  { id: "r32-82",  round: "Round of 32", date: "Tue Jul 1",  time: "6pm ET",  city: "Seattle, WA",          stadium: "Lumen Field",               r32id: 82  },
+  { id: "r32-83",  round: "Round of 32", date: "Wed Jul 2",  time: "12pm ET", city: "Toronto, Canada",      stadium: "BMO Field",                 r32id: 83  },
+  { id: "r32-84",  round: "Round of 32", date: "Wed Jul 2",  time: "3pm ET",  city: "Los Angeles, CA",      stadium: "Rose Bowl",                 r32id: 84  },
+  { id: "r32-85",  round: "Round of 32", date: "Wed Jul 2",  time: "6pm ET",  city: "Vancouver, Canada",    stadium: "BC Place",                  r32id: 85  },
+  { id: "r32-86",  round: "Round of 32", date: "Thu Jul 3",  time: "12pm ET", city: "Miami, FL",            stadium: "Hard Rock Stadium",         r32id: 86  },
+  { id: "r32-87",  round: "Round of 32", date: "Thu Jul 3",  time: "3pm ET",  city: "Kansas City, MO",      stadium: "Arrowhead Stadium",         r32id: 87  },
+  { id: "r32-88",  round: "Round of 32", date: "Thu Jul 3",  time: "6pm ET",  city: "Dallas, TX",           stadium: "AT&T Stadium",              r32id: 88  },
   // ── ROUND OF 16 ──
   { id: "r16-1",  round: "Round of 16", date: "Sat Jul 4",  time: "1pm ET",  city: "Houston, TX",          stadium: "NRG Stadium",             matchup: "Winner Group C vs Runner-up Group F",   groups: ["C","F"] },
   { id: "r16-2",  round: "Round of 16", date: "Sat Jul 4",  time: "5pm ET",  city: "Philadelphia, PA",     stadium: "Lincoln Financial Field",  matchup: "Winner R32 M85 vs Winner R32 M86",      groups: ["B","E","F","I","J"] },
@@ -1428,16 +1761,26 @@ const KNOCKOUT_VENUES = [
   { id: "final",  round: "Final",        date: "Sun Jul 19", time: "3pm ET",  city: "New York/New Jersey",  stadium: "MetLife Stadium",          matchup: "Winner SF1 vs Winner SF2",              groups: [] },
 ];
 
-const ROUND_ORDER = ["Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
+const ROUND_ORDER = ["Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
 
 function VenueExplorer({ onSelectTeam }) {
-  const [openId, setOpenId] = useState(null);
-  const [selectedRound, setSelectedRound] = useState("Round of 16");
+  const [openGame, setOpenGame] = useState(null);
+  const [selectedRound, setSelectedRound] = useState("Round of 32");
 
   const filteredGames = KNOCKOUT_VENUES.filter(g => g.round === selectedRound);
 
   const getPossibleTeams = (game) => {
-    if (game.groups.length === 0) return null;
+    if (!game) return null;
+    // R32 games — derive teams from the R32 bracket data
+    if (game.r32id) {
+      const r32match = R32.find(m => m.id === game.r32id);
+      if (!r32match) return null;
+      const dist1 = getSlotDist(r32match.t1);
+      const dist2 = getSlotDist(r32match.t2);
+      const teams = [...new Set([...Object.keys(dist1), ...Object.keys(dist2)])];
+      return teams.sort();
+    }
+    if (!game.groups || game.groups.length === 0) return null;
     const teams = [];
     game.groups.forEach(g => {
       if (GROUPS[g]) GROUPS[g].teams.forEach(t => { if (!teams.includes(t)) teams.push(t); });
@@ -1445,8 +1788,135 @@ function VenueExplorer({ onSelectTeam }) {
     return teams.sort();
   };
 
+  const getMatchupLabel = (game) => {
+    if (!game?.r32id) return null;
+    const m = R32.find(r => r.id === game.r32id);
+    if (!m) return null;
+    const slotLabel = (slot) => {
+      if (slot.type === "winner") return `Winner Grp ${slot.g}`;
+      if (slot.type === "runner") return `Runner-up Grp ${slot.g}`;
+      return `Best 3rd (${slot.gs?.join("/")})`;
+    };
+    return `${slotLabel(m.t1)} vs ${slotLabel(m.t2)}`;
+  };
+
+  const modal = openGame;
+  const modalTeams = modal ? getPossibleTeams(modal) : null;
+  const modalQ = modal ? encodeURIComponent(`FIFA World Cup 2026 ${modal.city}`) : "";
+
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 14px 60px" }}>
+
+      {/* ── FULL-SCREEN MODAL ── */}
+      {modal && (
+        <div
+          onClick={() => setOpenGame(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(3px)" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: "linear-gradient(160deg,#0c1828 0%,#060d18 100%)", border: "2px solid rgba(255,215,0,0.35)", borderRadius: 20, width: "min(640px, 96vw)", maxHeight: "88vh", overflowY: "auto", boxShadow: "0 0 80px rgba(0,0,0,0.9)", display: "flex", flexDirection: "column" }}
+          >
+            {/* Modal header */}
+            <div style={{ padding: "20px 22px 16px", borderBottom: "1px solid rgba(255,215,0,0.12)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+              <div>
+                <span style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 10, letterSpacing: "0.07em", textTransform: "uppercase" }}>{modal.round}</span>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginTop: 8, marginBottom: 2 }}>{modal.city}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>📍 {modal.stadium}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 4, fontWeight: 600 }}>📅 {modal.date} · {modal.time}</div>
+              </div>
+              <button
+                onClick={() => setOpenGame(null)}
+                style={{ flexShrink: 0, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#aaa", fontSize: 14, padding: "6px 14px", cursor: "pointer", fontWeight: 700, transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#aaa"; }}
+              >✕ Close</button>
+            </div>
+
+            {/* Modal body */}
+            <div style={{ padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+              {/* Slot matchup label for R32 */}
+              {modal.r32id && getMatchupLabel(modal) && (
+                <div style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>
+                  📋 {getMatchupLabel(modal)}
+                </div>
+              )}
+
+              {/* Top 4 most likely matchups for R32 */}
+              {modal.r32id && (() => {
+                const r32match = R32.find(m => m.id === modal.r32id);
+                if (!r32match) return null;
+                const top4 = getTopMatchups(r32match, 4);
+                if (!top4.length) return null;
+                return (
+                  <div>
+                    <div style={{ fontSize: 12, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>🔮 Most Likely Matchups</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {top4.map(({ teamA, teamB, prob }, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px" }}>
+                          <span style={{ fontSize: 11, fontWeight: 900, color: i === 0 ? "#FFD700" : "#445", width: 20, flexShrink: 0 }}>#{i+1}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+                            <Flag name={teamA} size={16} />
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamA}</span>
+                            <span style={{ fontSize: 11, color: "#445", flexShrink: 0 }}>vs</span>
+                            <Flag name={teamB} size={16} />
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamB}</span>
+                          </div>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: i === 0 ? "#FFD700" : "#667", flexShrink: 0 }}>{(prob * 100).toFixed(1)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 10, color: "#334", margin: "10px 0 0", fontStyle: "italic" }}>Based on Elo ratings · Group stage probabilities estimated via round-robin simulation</p>
+                  </div>
+                );
+              })()}
+
+              {/* Ticket CTA */}
+              <div style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,215,0,0.18)", borderRadius: 14, padding: "18px 20px" }}>
+                <div style={{ fontSize: 12, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>🎫 Get Tickets</div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <a href={`https://www.stubhub.com/search?q=${modalQ}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 22px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 14, borderRadius: 10, textDecoration: "none", transition: "all 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#00f0c0"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,212,170,0.35)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#00d4aa"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+                  >🎫 StubHub</a>
+                  <a href={`https://www.vividseats.com/search?q=${modalQ}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 22px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 14, borderRadius: 10, textDecoration: "none", transition: "all 0.15s", border: "1px solid rgba(168,85,247,0.4)" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,0.28)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(168,85,247,0.25)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,0.15)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+                  >🎟️ Vivid Seats</a>
+                </div>
+              </div>
+
+              {/* Possible teams */}
+              {modalTeams ? (
+                <div>
+                  <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: "0 0 12px" }}>
+                    <strong style={{ color: "#fff" }}>{modalTeams.length} teams</strong> could play here. Tap to simulate their path:
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                    {modalTeams.map(team => (
+                      <button key={team} onClick={() => { onSelectTeam(team); setOpenGame(null); }}
+                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
+                      >
+                        <Flag name={team} size={14} />{team}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>
+                  Teams depend on earlier results. Simulate a team's path to see if they reach {modal.city}.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <h2 style={{ color: "#FFD700", fontSize: "1.3rem", fontWeight: 900, margin: "0 0 6px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
@@ -1460,7 +1930,7 @@ function VenueExplorer({ onSelectTeam }) {
       {/* Round tabs */}
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {ROUND_ORDER.map(r => (
-          <button key={r} onClick={() => { setSelectedRound(r); setOpenId(null); }}
+          <button key={r} onClick={() => { setSelectedRound(r); }}
             style={{ padding: "7px 16px", borderRadius: 20, border: selectedRound === r ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.15)", background: selectedRound === r ? "#FFD700" : "transparent", color: selectedRound === r ? "#000" : "#8fa8c0", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.05em" }}
             onMouseEnter={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
             onMouseLeave={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#8fa8c0"; }}}
@@ -1468,88 +1938,26 @@ function VenueExplorer({ onSelectTeam }) {
         ))}
       </div>
 
-      {/* Game cards — each expands in place when clicked */}
-      <div className="venue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
-        {filteredGames.map(game => {
-          const open = openId === game.id;
-          const teams = open ? getPossibleTeams(game) : null;
-          const kBase = { "Round of 32": 600, "Round of 16": 1000, "Quarterfinal": 1600, "Semifinal": 2600, "Third Place": 850, "Final": 5605 }[game.round] || 600;
-          const q = encodeURIComponent(`FIFA World Cup 2026 ${game.city}`);
-          return (
-            <div key={game.id} onClick={() => setOpenId(open ? null : game.id)}
-              style={{ background: open ? "rgba(255,215,0,0.07)" : "rgba(255,255,255,0.04)", border: open ? "2px solid rgba(255,215,0,0.5)" : "2px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}
-              onMouseEnter={e => { if (!open) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.35)"; e.currentTarget.style.background = "rgba(255,255,255,0.07)"; }}}
-              onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}}
-            >
-              {/* Card header — always visible */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <span style={{ background: open ? "#FFD700" : "rgba(255,215,0,0.15)", color: open ? "#000" : "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>{game.round}</span>
-                <span style={{ color: open ? "#FFD700" : "rgba(255,255,255,0.3)", fontSize: 14, transition: "all 0.2s" }}>{open ? "▲" : "▼"}</span>
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginBottom: 4 }}>{game.city}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>📍 {game.stadium}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>📅 {game.date} · {game.time}</div>
-                {!open && <span style={{ fontSize: 10, color: "rgba(255,215,0,0.5)", fontWeight: 700 }}>Tap for 🎫</span>}
-              </div>
-
-              {/* Expanded content — inline, same as Summary tab */}
-              {open && (
-                <div onClick={e => e.stopPropagation()} style={{ marginTop: 16, borderTop: "1px solid rgba(255,215,0,0.15)", paddingTop: 16 }}>
-
-                  {/* Ticket CTA */}
-                  <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>🎫 Get Tickets</div>
-                    {/* PRICE ESTIMATE HIDDEN — re-enable when ready
-                    <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, margin: "0 0 12px" }}>
-                      {game.round} in {game.city} — from ~<strong style={{ color: "#fff" }}>${kBase.toLocaleString()}</strong>
-                    </p>
-                    */}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <a href={`https://www.stubhub.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "#00f0c0"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "#00d4aa"; e.currentTarget.style.transform = "translateY(0)"; }}
-                      >🎫 StubHub</a>
-                      <a href={`https://www.vividseats.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "8px 16px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 12, borderRadius: 9, textDecoration: "none", transition: "all 0.15s", border: "1px solid rgba(168,85,247,0.4)" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,0.28)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,0.15)"; e.currentTarget.style.transform = "translateY(0)"; }}
-                      >🎟️ Vivid Seats</a>
-                    </div>
-                    {/* DISCLAIMER HIDDEN — re-enable with prices
-                    <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 10, margin: "8px 0 0", fontStyle: "italic" }}>Price estimates only. Final teams TBD.</p>
-                    */}
-                  </div>
-
-                  {/* Possible teams */}
-                  {teams ? (
-                    <>
-                      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: "0 0 10px" }}>
-                        <strong style={{ color: "#fff" }}>{teams.length} teams</strong> could play here. Tap to simulate their path:
-                      </p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {teams.map(team => (
-                          <button key={team} onClick={() => onSelectTeam(team)}
-                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
-                          >
-                            <Flag name={team} size={14} />{team}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, margin: 0 }}>
-                      Teams depend on earlier results. Simulate a team's path to see if they reach {game.city}.
-                    </p>
-                  )}
-                </div>
-              )}
+      {/* Game cards — click opens modal */}
+      <div className="venue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        {filteredGames.map(game => (
+          <div key={game.id} onClick={() => setOpenGame(game)}
+            style={{ background: "rgba(255,255,255,0.04)", border: "2px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,215,0,0.45)"; e.currentTarget.style.background = "rgba(255,215,0,0.06)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <span style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>{game.round}</span>
+              <span style={{ fontSize: 13, color: "rgba(255,215,0,0.5)" }}>↗</span>
             </div>
-          );
-        })}
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginBottom: 4 }}>{game.city}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>📍 {game.stadium}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>📅 {game.date} · {game.time}</div>
+              <span style={{ fontSize: 10, color: "rgba(255,215,0,0.5)", fontWeight: 700 }}>Tap for 🎫</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
