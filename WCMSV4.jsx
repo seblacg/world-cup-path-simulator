@@ -497,6 +497,15 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
   const [order, setOrder] = useState([...teams]);
   const hasMain = !!mainTeam && teams.includes(mainTeam);
   const badgeColor = teamColor(mainTeam);
+  const btnRef = useRef(null);
+
+  const replayAnimation = () => {
+    if (!hasMain || standing || !btnRef.current) return;
+    const btn = btnRef.current;
+    btn.classList.remove("btn-wiggle");
+    void btn.offsetWidth; // force reflow
+    btn.classList.add("btn-wiggle");
+  };
 
   useEffect(() => {
     setOrder([...teams]);
@@ -511,7 +520,7 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
   ];
 
   return (
-    <div style={{ background: hasMain ? "linear-gradient(135deg,#0d1b3a,#131f40)" : "rgba(255,255,255,0.055)", border: hasMain ? `2px solid ${badgeColor}` : "1px solid rgba(255,255,255,0.13)", borderRadius: 14, padding: 18, position: "relative" }}>
+    <div onMouseEnter={replayAnimation} style={{ background: hasMain ? "linear-gradient(135deg,#0d1b3a,#131f40)" : "rgba(255,255,255,0.055)", border: hasMain ? `2px solid ${badgeColor}` : "1px solid rgba(255,255,255,0.13)", borderRadius: 14, padding: 18, position: "relative" }}>
       {hasMain && (
         <div style={{ position: "absolute", top: -11, left: 16, background: badgeColor, color: "#fff", fontSize: 10, fontWeight: 900, padding: "2px 14px", borderRadius: 10, letterSpacing: 1.2, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 5, border: `1px solid ${badgeColor}`, boxShadow: `0 2px 8px ${badgeColor}55` }}>
           ⭐ {mainTeam}'s Group
@@ -526,32 +535,36 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
             <div key={team} style={{ display: "flex", alignItems: "center", gap: 9, background: isMain ? "rgba(255,215,0,0.13)" : ps.bg, border: `1px solid ${isMain ? "#FFD70066" : ps.color + "33"}`, borderRadius: 9, padding: "8px 10px" }}>
               <span style={{ fontSize: 11, fontWeight: 800, color: ps.color, width: 26, textAlign: "center", flexShrink: 0 }}>{ps.label}</span>
               <Flag name={team} size={17} />
-              <span style={{ flex: 1, fontSize: 13, color: isMain ? "#FFD700" : "#ddd", fontWeight: isMain ? 800 : 600 }}>{team}</span>
-              <div style={{ display: "flex", gap: 3 }}>
-                {idx > 0           && <button onClick={() => swap(idx, idx - 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#94a8bf", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↑</button>}
-                {idx < order.length - 1 && <button onClick={() => swap(idx, idx + 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 4, color: "#94a8bf", cursor: "pointer", fontSize: 11, padding: "2px 6px", lineHeight: 1 }}>↓</button>}
+              <span style={{ flex: 1, fontSize: 13, color: isMain ? "#FFD700" : "#ddd", fontWeight: isMain ? 800 : 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team}</span>
+              <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+                {idx > 0           && <button onClick={() => swap(idx, idx - 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "#94a8bf", cursor: "pointer", fontSize: 14, padding: "3px 8px", lineHeight: 1, transition: "all 0.15s" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.3)"; }} onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#94a8bf"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>↑</button>}
+                {idx < order.length - 1 && <button onClick={() => swap(idx, idx + 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "#94a8bf", cursor: "pointer", fontSize: 14, padding: "3px 8px", lineHeight: 1, transition: "all 0.15s" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.3)"; }} onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#94a8bf"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>↓</button>}
               </div>
             </div>
           );
         })}
       </div>
-      <button onClick={() => onSet(order[0], order[1], order[2])} style={{ marginTop: 12, width: "100%", padding: "10px 0", background: standing ? "rgba(74,222,128,0.13)" : hasMain ? "rgba(255,215,0,0.18)" : "rgba(255,255,255,0.05)", border: standing ? "1px solid #4ade80" : hasMain ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: standing ? "#4ade80" : hasMain ? "#FFD700" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+      <button ref={btnRef} onClick={() => onSet(order[0], order[1], order[2])}
+        className={hasMain && !standing ? "btn-wiggle" : ""}
+        style={{ marginTop: 12, width: "100%", padding: "10px 0", background: standing ? "rgba(74,222,128,0.13)" : "rgba(255,255,255,0.05)", border: standing ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.1)", borderRadius: 9, color: standing ? "#4ade80" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", transition: "background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s" }}
         onMouseEnter={e => {
-          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.3)" : hasMain ? "rgba(255,215,0,0.35)" : "rgba(255,255,255,0.14)";
-          e.currentTarget.style.borderColor = standing ? "#4ade80" : hasMain ? "#FFD700" : "rgba(255,255,255,0.5)";
-          e.currentTarget.style.color = standing ? "#fff" : hasMain ? "#fff" : "#fff";
-          e.currentTarget.style.boxShadow = standing ? "0 0 12px rgba(74,222,128,0.3)" : hasMain ? "0 0 12px rgba(255,215,0,0.3)" : "0 0 10px rgba(255,255,255,0.12)";
+          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.14)";
+          e.currentTarget.style.borderColor = standing ? "#4ade80" : "rgba(255,255,255,0.5)";
+          e.currentTarget.style.color = "#fff";
+          e.currentTarget.style.boxShadow = standing ? "0 0 12px rgba(74,222,128,0.3)" : "0 0 10px rgba(255,255,255,0.12)";
           e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.animationPlayState = "paused";
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.13)" : hasMain ? "rgba(255,215,0,0.18)" : "rgba(255,255,255,0.05)";
-          e.currentTarget.style.borderColor = standing ? "#4ade80" : hasMain ? "#FFD700" : "rgba(255,255,255,0.1)";
-          e.currentTarget.style.color = standing ? "#4ade80" : hasMain ? "#FFD700" : "#8fa8c0";
+          e.currentTarget.style.background = standing ? "rgba(74,222,128,0.13)" : "rgba(255,255,255,0.05)";
+          e.currentTarget.style.borderColor = standing ? "#4ade80" : "rgba(255,255,255,0.1)";
+          e.currentTarget.style.color = standing ? "#4ade80" : "#8fa8c0";
           e.currentTarget.style.boxShadow = "none";
           e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.animationPlayState = "running";
         }}
       >
-        {standing ? `✓ ${standing.winner} wins Group ${group}` : `Confirm Group ${group}`}
+        {standing ? `✓ ${order[0]} wins Group ${group}` : `Confirm Group ${group}`}
       </button>
     </div>
   );
@@ -865,6 +878,14 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   const [activeRound, setActiveRound] = useState("r32");
   const [viewMode, setViewMode] = useState("path"); // "path" | "bracket"
 
+  const topRef      = useRef(null);
+  const continueRef = useRef(null);
+
+  const scrollToTop      = () => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  const scrollToContinue = () => setTimeout(() => continueRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+
+  const goToRound = (round) => { setActiveRound(round); scrollToTop(); };
+
   const gs  = (g, pos) => { const s = allGroupStandings[g]; if (!s) return `${pos === "winner" ? "Winner" : pos === "runner" ? "Runner" : "3rd"} Grp ${g}`; return s[pos] || "Other"; };
   const rr  = (src) => {
     if (src.type === "winner") return gs(src.g, "winner");
@@ -878,53 +899,57 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   const inv = (name) => !!(name && mainTeam && name === mainTeam);
   const matchHasMain = (t1, t2) => inv(t1) || inv(t2);
 
-  // Shared subtle button style for auto-confirm buttons
-  const subtleBtn = {
-    padding: "6px 18px", background: "transparent",
-    border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20,
-    color: "#94a8bf", fontWeight: 600, fontSize: 12, cursor: "pointer",
-    letterSpacing: "0.03em", transition: "all 0.15s",
+  // Prominent auto-confirm button style
+  const autoBtn = {
+    padding: "10px 28px", background: "rgba(255,215,0,0.08)",
+    border: "1px solid rgba(255,215,0,0.4)", borderRadius: 30,
+    color: "rgba(255,215,0,0.75)", fontWeight: 500, fontSize: 12,
+    cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.2s",
   };
-  const subtleBtnHover = (e) => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; };
-  const subtleBtnLeave = (e) => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#888"; };
+  const autoBtnHover = (e) => { e.target.style.background = "rgba(255,215,0,0.16)"; e.target.style.borderColor = "rgba(255,215,0,0.8)"; e.target.style.color = "#FFD700"; };
+  const autoBtnLeave = (e) => { e.target.style.background = "rgba(255,215,0,0.08)"; e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "rgba(255,215,0,0.75)"; };
 
-  // Auto-confirm helpers — pick t1 as winner for every unset match in a round
+  // Auto-confirm helpers — pick t1 as winner for every unset match, then scroll to continue
   const autoR32 = () => {
     const updates = {};
     R32.forEach((m) => { const t1 = rr(m.t1); if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
+    scrollToContinue();
   };
   const autoR16 = () => {
     const updates = {};
     R16.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
+    scrollToContinue();
   };
   const autoQF = () => {
     const updates = {};
     QF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
+    scrollToContinue();
   };
   const autoSF = () => {
     const updates = {};
     SF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
+    scrollToContinue();
   };
   const autoFinal = () => {
     const sf1w = knockoutWinners[101] || "Other";
     const sf2w = knockoutWinners[102] || "Other";
-    // Derive SF losers: the participant who didn't win each semifinal
     const sf1teams = [knockoutWinners[SF[0].m1] || "Other", knockoutWinners[SF[0].m2] || "Other"];
     const sf2teams = [knockoutWinners[SF[1].m1] || "Other", knockoutWinners[SF[1].m2] || "Other"];
     const sf1loser = sf1teams.find((t) => t !== sf1w) || "Other";
     const sf2loser = sf2teams.find((t) => t !== sf2w) || "Other";
     const updates = {};
-    if (!knockoutWinners[103]) updates[103] = sf1loser; // bronze: sf1 loser vs sf2 loser
-    if (!knockoutWinners[104]) updates[104] = sf1w;     // final: sf1 winner vs sf2 winner
+    if (!knockoutWinners[103]) updates[103] = sf1loser;
+    if (!knockoutWinners[104]) updates[104] = sf1w;
     setKnockoutWinners((p) => {
       const next = { ...p, ...updates };
       if (updates[104]) onChampion(updates[104]);
       return next;
     });
+    scrollToContinue();
   };
 
   // Path steps: find which R32 match the main team is in
@@ -974,7 +999,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   }
 
   return (
-    <div>
+    <div ref={topRef}>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFD700", marginBottom: 6 }}>🏆 Knockout Stage</h2>
         <p style={{ color: "#8fa8c0", fontSize: 13, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -1032,7 +1057,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       {/* Round tabs */}
       <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 20 }}>
         {TABS.map((r) => (
-          <button key={r.id} onClick={() => setActiveRound(r.id)} style={{ padding: "6px 16px", borderRadius: 20, border: activeRound === r.id ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.12)", background: activeRound === r.id ? "rgba(255,215,0,0.13)" : "rgba(255,255,255,0.03)", color: activeRound === r.id ? "#FFD700" : "#8fa8c0", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.15s" }}
+          <button key={r.id} onClick={() => goToRound(r.id)} style={{ padding: "6px 16px", borderRadius: 20, border: activeRound === r.id ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.12)", background: activeRound === r.id ? "rgba(255,215,0,0.13)" : "rgba(255,255,255,0.03)", color: activeRound === r.id ? "#FFD700" : "#8fa8c0", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.15s" }}
             onMouseEnter={e => { if (activeRound !== r.id) { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
             onMouseLeave={e => { if (activeRound !== r.id) { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#8fa8c0"; }}}
           >{r.label}</button>
@@ -1041,70 +1066,86 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
 
       {activeRound === "r32" && (
         <div>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <button style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoR32}>Auto-Confirm All Round of 32</button>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {R32.map((m) => { const t1 = rr(m.t1), t2 = rr(m.t2); return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 32`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("r16")} label="Continue to Round of 16 →" onBack={onBackToGroups} backLabel="Group Stage" incomplete={R32.some((m) => !mw(m.id))} />
-          <div style={{ textAlign: "center", marginTop: 10 }}>
-            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoR32}>Auto-Confirm All Round of 32</button>
-          </div>
+                      <div ref={continueRef}>
+
+                      <ContinueBtn onClick={() => goToRound("r16")} label="Continue to Round of 16 →" onBack={onBackToGroups} backLabel="Group Stage" incomplete={R32.some((m) => !mw(m.id))} />
+
+                      </div>
+
         </div>
       )}
       {activeRound === "r16" && (
         <div>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <button style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoR16}>Auto-Confirm All Round of 16</button>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {R16.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 16`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("qf")} label="Continue to Quarterfinals →" onBack={() => setActiveRound("r32")} backLabel="Round of 32" incomplete={R16.some((m) => !mw(m.id))} />
-          <div style={{ textAlign: "center", marginTop: 10 }}>
-            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoR16}>Auto-Confirm All Round of 16</button>
-          </div>
+                      <div ref={continueRef}>
+
+                      <ContinueBtn onClick={() => goToRound("qf")} label="Continue to Quarterfinals →" onBack={() => goToRound("r32")} backLabel="Round of 32" incomplete={R16.some((m) => !mw(m.id))} />
+
+                      </div>
+
         </div>
       )}
       {activeRound === "qf" && (
         <div>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <button style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoQF}>Auto-Confirm All Quarterfinals</button>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {QF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Quarterfinal`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("sf")} label="Continue to Semifinals →" onBack={() => setActiveRound("r16")} backLabel="Round of 16" incomplete={QF.some((m) => !mw(m.id))} />
-          <div style={{ textAlign: "center", marginTop: 10 }}>
-            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoQF}>Auto-Confirm All Quarterfinals</button>
-          </div>
+                      <div ref={continueRef}>
+
+                      <ContinueBtn onClick={() => goToRound("sf")} label="Continue to Semifinals →" onBack={() => goToRound("r16")} backLabel="Round of 16" incomplete={QF.some((m) => !mw(m.id))} />
+
+                      </div>
+
         </div>
       )}
       {activeRound === "sf" && (
         <div>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <button style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoSF}>Auto-Confirm All Semifinals</button>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 10 }}>
             {SF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Semifinal`} />; })}
           </div>
-          <ContinueBtn onClick={() => setActiveRound("final")} label="Continue to Final →" onBack={() => setActiveRound("qf")} backLabel="Quarterfinals" incomplete={SF.some((m) => !mw(m.id))} />
-          <div style={{ textAlign: "center", marginTop: 10 }}>
-            <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoSF}>Auto-Confirm All Semifinals</button>
-          </div>
+                      <div ref={continueRef}>
+
+                      <ContinueBtn onClick={() => goToRound("final")} label="Continue to Final →" onBack={() => goToRound("qf")} backLabel="Quarterfinals" incomplete={SF.some((m) => !mw(m.id))} />
+
+                      </div>
+
         </div>
       )}
       {activeRound === "final" && (() => {
         const sf1w = mw(101), sf2w = mw(102);
-        // Derive SF losers for bronze match
         const sf1t1 = mw(SF[0].m1) || "Other", sf1t2 = mw(SF[0].m2) || "Other";
         const sf2t1 = mw(SF[1].m1) || "Other", sf2t2 = mw(SF[1].m2) || "Other";
         const sf1loser = sf1w ? (sf1t1 === sf1w ? sf1t2 : sf1t1) : "Other";
         const sf2loser = sf2w ? (sf2t1 === sf2w ? sf2t2 : sf2t1) : "Other";
-        const finalIncomplete = !mw(103) || !mw(104);
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ textAlign: "center", marginBottom: 6 }}>
+              <button style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoFinal}>Auto-Confirm 3rd Place / Final</button>
+            </div>
             <MatchCard match={{ id: 103, date: "Jul 18", city: "Miami" }} t1={sf1loser} t2={sf2loser} winner={mw(103)} onPick={(w) => setKnockoutWinners((p) => ({ ...p, 103: w }))} highlight={matchHasMain(sf1loser, sf2loser)} mainTeam={mainTeam} label="Match 103 · Third Place" isBronze />
             <MatchCard match={{ id: 104, date: "Jul 19", city: "New York/NJ" }} t1={sf1w||"Other"} t2={sf2w||"Other"} winner={mw(104)} onPick={(w) => sw(104, w)} highlight={matchHasMain(sf1w||"Other", sf2w||"Other")} mainTeam={mainTeam} label="Match 104 · THE FINAL" isFinal />
             <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-              <button onClick={() => setActiveRound("sf")} style={{ flex: "0 0 auto", padding: "11px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#94a8bf", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
+              <button onClick={() => goToRound("sf")} style={{ flex: "0 0 auto", padding: "11px 20px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#94a8bf", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#ccc"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#888"; }}
-              >
-                ← Semifinals
-              </button>
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <button style={subtleBtn} onMouseEnter={subtleBtnHover} onMouseLeave={subtleBtnLeave} onClick={autoFinal}>Auto-Confirm 3rd Place / Final</button>
-              </div>
+              >← Semifinals</button>
             </div>
           </div>
         );
@@ -1763,9 +1804,14 @@ const KNOCKOUT_VENUES = [
 
 const ROUND_ORDER = ["Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
 
-function VenueExplorer({ onSelectTeam }) {
+function VenueExplorer({ onSelectTeam, scrollToFirstGame }) {
   const [openGame, setOpenGame] = useState(null);
   const [selectedRound, setSelectedRound] = useState("Round of 32");
+  const firstGameRef = useRef(null);
+
+  const scrollToFirst = () => setTimeout(() => firstGameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+
+  useEffect(() => { scrollToFirst(); }, []);
 
   const filteredGames = KNOCKOUT_VENUES.filter(g => g.round === selectedRound);
 
@@ -1816,7 +1862,7 @@ function VenueExplorer({ onSelectTeam }) {
       {/* Round tabs */}
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {ROUND_ORDER.map(r => (
-          <button key={r} onClick={() => { setSelectedRound(r); setOpenGame(null); }}
+          <button key={r} onClick={() => { setSelectedRound(r); setOpenGame(null); scrollToFirst(); }}
             style={{ padding: "7px 16px", borderRadius: 20, border: selectedRound === r ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.15)", background: selectedRound === r ? "#FFD700" : "transparent", color: selectedRound === r ? "#000" : "#8fa8c0", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.05em" }}
             onMouseEnter={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
             onMouseLeave={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#8fa8c0"; }}}
@@ -1826,7 +1872,7 @@ function VenueExplorer({ onSelectTeam }) {
 
       {/* Game cards — tap to expand inline */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {filteredGames.map(game => {
+        {filteredGames.map((game, gameIdx) => {
           const isOpen = openGame?.id === game.id;
           const cardTeams = getPossibleTeams(game);
           const cardQ = encodeURIComponent(`FIFA World Cup 2026 ${game.city}`);
@@ -1835,6 +1881,7 @@ function VenueExplorer({ onSelectTeam }) {
 
           return (
             <div key={game.id}
+              ref={gameIdx === 0 ? firstGameRef : null}
               style={{ background: isOpen ? "rgba(255,215,0,0.06)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? "rgba(255,215,0,0.45)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s, background 0.2s" }}
             >
               {/* Card header — always visible, tap to toggle */}
@@ -1934,8 +1981,8 @@ function VenueExplorer({ onSelectTeam }) {
 
 // ─── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [phase,             setPhase]             = useState("venue");
-  const [heroMode,          setHeroMode]          = useState(null); // null | "venue" | "team"
+  const [phase,             setPhase]             = useState("group");
+  const [heroMode,          setHeroMode]          = useState("team");
   const [mainTeam,          setMainTeam]          = useState(null);
   const [allGroupStandings, setAllGroupStandings] = useState({});
   const [knockoutWinners,   setKnockoutWinners]   = useState({});
@@ -1948,6 +1995,7 @@ export default function App() {
 
   // Confirm all 12 groups at once using their current displayed order (default = original order)
   const continueKnockoutRef = React.useRef(null);
+  const knockoutTopRef      = React.useRef(null);
 
   const handleConfirmAllGroups = () => {
     const updates = {};
@@ -1959,7 +2007,7 @@ export default function App() {
     });
     setAllGroupStandings((p) => ({ ...p, ...updates }));
     setTimeout(() => {
-      continueKnockoutRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      continueKnockoutRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 100);
   };
 
@@ -2023,6 +2071,28 @@ export default function App() {
           from { opacity: 0; }
           to   { opacity: 1; }
         }
+        @keyframes glow-border {
+          0%,100% { border-color: rgba(255,215,0,0.3); box-shadow: none; transform: translateY(0); }
+          50%     { border-color: #FFD700; box-shadow: 0 0 0 5px rgba(255,215,0,0.28), 0 0 22px rgba(255,215,0,0.35); transform: translateY(-3px); }
+        }
+        .btn-glow {
+          animation: glow-border 1.1s ease-in-out 5;
+        }
+        @keyframes wiggle {
+          0%,100% { transform: translateY(0); }
+          20%     { transform: translateY(-4px); }
+          40%     { transform: translateY(-2px); }
+          60%     { transform: translateY(-4px); }
+          80%     { transform: translateY(-1px); }
+        }
+        @keyframes drop-in {
+          0%   { transform: translateY(-12px); opacity: 0; }
+          60%  { transform: translateY(3px); opacity: 1; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        .btn-wiggle {
+          animation: drop-in 0.6s ease-out both;
+        }
         @media (max-width: 520px) {
           .chip-grid { gap: 5px !important; max-width: 100% !important; }
           .chip-btn  { font-size: 11px !important; padding: 4px 8px !important; }
@@ -2063,7 +2133,9 @@ export default function App() {
       })()}
 
       {/* ── HERO ── */}
-      <div style={{ position: "relative", background: "linear-gradient(180deg,#00277a 0%,#001650 55%,#000a1e 100%)", padding: "36px 20px 56px", textAlign: "center", clipPath: "polygon(0 0,100% 0,100% 80%,50% 100%,0 80%)", marginBottom: 6, overflow: "hidden" }}>
+      <div style={{ position: "relative", background: "linear-gradient(180deg,#00277a 0%,#001650 55%,#000a1e 100%)", padding: "36px 20px 56px", textAlign: "center", marginBottom: 6, overflow: "hidden" }}>
+        {/* Fade to transparent at bottom */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to bottom, transparent, #070b12)", pointerEvents: "none", zIndex: 1 }} />
 
         {/* Stadium silhouette SVG */}
         <svg viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "60%", opacity: 0.18, pointerEvents: "none" }}>
@@ -2166,18 +2238,50 @@ export default function App() {
             </button>
           </div>
 
-          {/* Reset */}
-          {heroMode && (
-            <div style={{ animation: "fadeIn 0.3s ease both" }}>
-              <button onClick={handleResetAll}
-                style={{ padding: "5px 18px", background: "transparent", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 20, color: "rgba(248,113,113,0.55)", fontWeight: 600, fontSize: 11, cursor: "pointer", letterSpacing: "0.04em", transition: "all 0.15s" }}
-                onMouseEnter={e => { e.target.style.borderColor = "rgba(248,113,113,0.7)"; e.target.style.color = "#f87171"; }}
-                onMouseLeave={e => { e.target.style.borderColor = "rgba(248,113,113,0.3)"; e.target.style.color = "rgba(248,113,113,0.55)"; }}
-              >Reset All</button>
+          {/* ── TEAM PICKER — inside hero, below mode cards ── */}
+          {heroMode === "team" && (
+            <div style={{ maxWidth: 620, margin: "4px auto 0", animation: "fadeSlideUp 0.4s ease both" }}>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400, fontSize: 12, letterSpacing: "0.03em", textAlign: "center", marginBottom: 10 }}>⚽ pick a team to simulate</p>
+              <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 7 }}>
+                {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].map(team => {
+                  const selected = mainTeam === team;
+                  return (
+                    <button key={team} onClick={() => handleTeamChange(team)}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: selected ? "rgba(255,215,0,0.2)" : "rgba(255,255,255,0.07)", border: selected ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.18)", borderRadius: 24, color: selected ? "#FFD700" : "#ddd", fontSize: 13, fontWeight: selected ? 800 : 600, cursor: "pointer", transition: "all 0.15s" }}
+                      onMouseEnter={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,215,0,0.12)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}}
+                      onMouseLeave={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#ddd"; }}}
+                    >
+                      <Flag name={team} size={15} />{team}{selected && <span style={{ marginLeft: 2, fontSize: 11 }}>✓</span>}
+                    </button>
+                  );
+                })}
+                <OtherTeamsDropdown
+                  teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].includes(t)).sort()}
+                  onSelect={handleTeamChange}
+                  selectedTeam={mainTeam}
+                />
+              </div>
             </div>
           )}
+
+          {/* ── VENUE EXPLORER — inside hero, below mode cards ── */}
+          {heroMode === "venue" && (
+            <div style={{ maxWidth: 860, margin: "16px auto 0", width: "100%", animation: "fadeSlideUp 0.4s ease both" }}>
+              <VenueExplorer onSelectTeam={(team) => { handleTeamChange(team); setHeroMode("team"); setPhase("group"); }} />
+            </div>
+          )}
+
         </div>
       </div>
+
+      {/* ── FLOATING RESET BUTTON — bottom left ── */}
+      {heroMode && (
+        <button onClick={handleResetAll}
+          style={{ position: "fixed", bottom: 24, left: 20, zIndex: 1000, padding: "8px 16px", background: "rgba(15,20,35,0.85)", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 20, color: "rgba(248,113,113,0.6)", fontWeight: 500, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.2s", backdropFilter: "blur(8px)" }}
+          onMouseEnter={e => { e.target.style.borderColor = "rgba(248,113,113,0.7)"; e.target.style.color = "#f87171"; e.target.style.background = "rgba(248,113,113,0.12)"; }}
+          onMouseLeave={e => { e.target.style.borderColor = "rgba(248,113,113,0.35)"; e.target.style.color = "rgba(248,113,113,0.6)"; e.target.style.background = "rgba(15,20,35,0.85)"; }}
+        >↺ reset</button>
+      )}
 
       {/* ── TABS (team mode only) ── */}
       {heroMode === "team" && (
@@ -2201,41 +2305,8 @@ export default function App() {
           </div>
         )}
 
-        {heroMode === "venue" && (
-          <div style={{ animation: "fadeSlideUp 0.4s ease both" }}>
-            <VenueExplorer onSelectTeam={(team) => { handleTeamChange(team); setHeroMode("team"); setPhase("group"); }} />
-          </div>
-        )}
-
         {heroMode === "team" && (
           <div style={{ animation: "fadeSlideUp 0.4s ease both" }}>
-
-            {!mainTeam && (
-              <div style={{ textAlign: "center", marginBottom: 28 }}>
-                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14, fontWeight: 700 }}>Pick a team to simulate</p>
-                <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, maxWidth: 540, margin: "0 auto" }}>
-                  {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].map(team => (
-                    <button key={team} onClick={() => handleTeamChange(team)}
-                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#ddd"; }}
-                    ><Flag name={team} size={14} />{team}</button>
-                  ))}
-                  <OtherTeamsDropdown
-                    teams={ALL_TEAMS.filter(t => !["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].includes(t)).sort()}
-                    onSelect={handleTeamChange}
-                  />
-                </div>
-              </div>
-            )}
-
-            {mainTeam && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                <Flag name={mainTeam} size={32} />
-                <span style={{ color: "#fff", fontWeight: 800, fontSize: 15 }}>{mainTeam}</span>
-                <TeamSelector mainTeam={mainTeam} onChange={handleTeamChange} />
-              </div>
-            )}
 
             {phase === "group" && (
               <div>
@@ -2254,12 +2325,21 @@ export default function App() {
                     <GroupCard group={teamGroup} teams={GROUPS[teamGroup].teams} standing={allGroupStandings[teamGroup]} onSet={(w, r, t) => setGroup(teamGroup, w, r, t)} mainTeam={mainTeam} />
                   </div>
                 )}
-                <div style={{ textAlign: "center", margin: "0 0 16px" }}>
+                <div style={{ textAlign: "center", margin: "0 0 20px" }}>
+                  {/* Helpful tip caption */}
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13 }}>💡</span>
+                    <span style={{ fontSize: 12, color: "rgba(147,197,253,0.7)", fontStyle: "italic", letterSpacing: "0.01em" }}>
+                      Confirm each group manually or use <strong style={{ fontStyle: "normal", color: "rgba(147,197,253,1)" }}>Auto-Confirm</strong> to fill all at once
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 20, color: "rgba(147,197,253,0.45)", lineHeight: 1, marginBottom: 8, display: "block" }}>↓</div>
                   <button onClick={handleConfirmAllGroups}
-                    style={{ padding: "6px 18px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#94a8bf", fontWeight: 600, fontSize: 12, cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
-                    onMouseEnter={e => { e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "#bbb"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#94a8bf"; }}
-                  >Auto-Confirm All Groups</button>
+                    className="btn-glow"
+                    style={{ padding: "16px 36px", background: "rgba(255,215,0,0.08)", border: "1.5px solid rgba(255,215,0,0.4)", borderRadius: 30, color: "rgba(255,215,0,0.85)", fontWeight: 600, fontSize: 16, cursor: "pointer", letterSpacing: "0.03em", transition: "background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s" }}
+                    onMouseEnter={e => { e.target.style.background = "rgba(255,215,0,0.18)"; e.target.style.borderColor = "#FFD700"; e.target.style.color = "#FFD700"; e.target.style.boxShadow = "0 0 0 4px rgba(255,215,0,0.2), 0 0 20px rgba(255,215,0,0.3)"; e.target.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { e.target.style.background = "rgba(255,215,0,0.08)"; e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "rgba(255,215,0,0.85)"; e.target.style.boxShadow = "none"; e.target.style.transform = "translateY(0)"; }}
+                  >Auto-Confirm All Group Stage</button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
                   {Object.entries(GROUPS).filter(([g]) => g !== teamGroup).map(([g, data]) => (
@@ -2275,7 +2355,7 @@ export default function App() {
                     {(teamFinish === "winner" || teamFinish === "runner") && (() => {
                       const allConfirmed = Object.keys(GROUPS).every(g => allGroupStandings[g]);
                       return (
-                        <button ref={continueKnockoutRef} onClick={() => setPhase("knockout")}
+                        <button ref={continueKnockoutRef} onClick={() => { setPhase("knockout"); setTimeout(() => knockoutTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }}
                           style={{ padding: "11px 32px", background: allConfirmed ? "#4ade80" : "#FFD700", color: "#000", border: "none", borderRadius: 24, fontWeight: 900, cursor: "pointer", fontSize: 14, transition: "all 0.4s", boxShadow: allConfirmed ? "0 0 20px rgba(74,222,128,0.4)" : "none" }}>
                           Continue to Knockout Rounds →
                         </button>
@@ -2287,6 +2367,7 @@ export default function App() {
             )}
 
             {phase === "knockout" && (
+              <div ref={knockoutTopRef}>
               <KnockoutPhase
                 allGroupStandings={allGroupStandings}
                 knockoutWinners={knockoutWinners}
@@ -2297,6 +2378,7 @@ export default function App() {
                 onChampion={handleChampion}
                 onBackToGroups={() => setPhase("group")}
               />
+              </div>
             )}
 
             {phase === "summary" && (
