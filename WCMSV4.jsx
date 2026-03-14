@@ -1800,122 +1800,8 @@ function VenueExplorer({ onSelectTeam }) {
     return `${slotLabel(m.t1)} vs ${slotLabel(m.t2)}`;
   };
 
-  const modal = openGame;
-  const modalTeams = modal ? getPossibleTeams(modal) : null;
-  const modalQ = modal ? encodeURIComponent(`FIFA World Cup 2026 ${modal.city}`) : "";
-
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 14px 60px" }}>
-
-      {/* ── FULL-SCREEN MODAL ── */}
-      {modal && (
-        <div
-          onClick={() => setOpenGame(null)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(3px)" }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ background: "linear-gradient(160deg,#0c1828 0%,#060d18 100%)", border: "2px solid rgba(255,215,0,0.35)", borderRadius: 20, width: "min(640px, 96vw)", maxHeight: "88vh", overflowY: "auto", boxShadow: "0 0 80px rgba(0,0,0,0.9)", display: "flex", flexDirection: "column" }}
-          >
-            {/* Modal header */}
-            <div style={{ padding: "20px 22px 16px", borderBottom: "1px solid rgba(255,215,0,0.12)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-              <div>
-                <span style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 10, letterSpacing: "0.07em", textTransform: "uppercase" }}>{modal.round}</span>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginTop: 8, marginBottom: 2 }}>{modal.city}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>📍 {modal.stadium}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 4, fontWeight: 600 }}>📅 {modal.date} · {modal.time}</div>
-              </div>
-              <button
-                onClick={() => setOpenGame(null)}
-                style={{ flexShrink: 0, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, color: "#aaa", fontSize: 14, padding: "6px 14px", cursor: "pointer", fontWeight: 700, transition: "all 0.15s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#aaa"; }}
-              >✕ Close</button>
-            </div>
-
-            {/* Modal body */}
-            <div style={{ padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
-
-              {/* Slot matchup label for R32 */}
-              {modal.r32id && getMatchupLabel(modal) && (
-                <div style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>
-                  📋 {getMatchupLabel(modal)}
-                </div>
-              )}
-
-              {/* Top 4 most likely matchups for R32 */}
-              {modal.r32id && (() => {
-                const r32match = R32.find(m => m.id === modal.r32id);
-                if (!r32match) return null;
-                const top4 = getTopMatchups(r32match, 4);
-                if (!top4.length) return null;
-                return (
-                  <div>
-                    <div style={{ fontSize: 12, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>🔮 Most Likely Matchups</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {top4.map(({ teamA, teamB, prob }, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 14px" }}>
-                          <span style={{ fontSize: 11, fontWeight: 900, color: i === 0 ? "#FFD700" : "#445", width: 20, flexShrink: 0 }}>#{i+1}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-                            <Flag name={teamA} size={16} />
-                            <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamA}</span>
-                            <span style={{ fontSize: 11, color: "#445", flexShrink: 0 }}>vs</span>
-                            <Flag name={teamB} size={16} />
-                            <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamB}</span>
-                          </div>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: i === 0 ? "#FFD700" : "#667", flexShrink: 0 }}>{(prob * 100).toFixed(1)}%</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p style={{ fontSize: 10, color: "#334", margin: "10px 0 0", fontStyle: "italic" }}>Based on Elo ratings · Group stage probabilities estimated via round-robin simulation</p>
-                  </div>
-                );
-              })()}
-
-              {/* Ticket CTA */}
-              <div style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,215,0,0.18)", borderRadius: 14, padding: "18px 20px" }}>
-                <div style={{ fontSize: 12, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>🎫 Get Tickets</div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <a href={`https://www.stubhub.com/search?q=${modalQ}`} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 22px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 14, borderRadius: 10, textDecoration: "none", transition: "all 0.15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#00f0c0"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,212,170,0.35)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#00d4aa"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
-                  >🎫 StubHub</a>
-                  <a href={`https://www.vividseats.com/search?q=${modalQ}`} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 22px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 14, borderRadius: 10, textDecoration: "none", transition: "all 0.15s", border: "1px solid rgba(168,85,247,0.4)" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(168,85,247,0.28)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(168,85,247,0.25)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(168,85,247,0.15)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
-                  >🎟️ Vivid Seats</a>
-                </div>
-              </div>
-
-              {/* Possible teams */}
-              {modalTeams ? (
-                <div>
-                  <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: "0 0 12px" }}>
-                    <strong style={{ color: "#fff" }}>{modalTeams.length} teams</strong> could play here. Tap to simulate their path:
-                  </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                    {modalTeams.map(team => (
-                      <button key={team} onClick={() => { onSelectTeam(team); setOpenGame(null); }}
-                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
-                      >
-                        <Flag name={team} size={14} />{team}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>
-                  Teams depend on earlier results. Simulate a team's path to see if they reach {modal.city}.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
@@ -1930,7 +1816,7 @@ function VenueExplorer({ onSelectTeam }) {
       {/* Round tabs */}
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {ROUND_ORDER.map(r => (
-          <button key={r} onClick={() => { setSelectedRound(r); }}
+          <button key={r} onClick={() => { setSelectedRound(r); setOpenGame(null); }}
             style={{ padding: "7px 16px", borderRadius: 20, border: selectedRound === r ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.15)", background: selectedRound === r ? "#FFD700" : "transparent", color: selectedRound === r ? "#000" : "#8fa8c0", fontWeight: 700, fontSize: 12, cursor: "pointer", transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.05em" }}
             onMouseEnter={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#fff"; }}}
             onMouseLeave={e => { if (selectedRound !== r) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#8fa8c0"; }}}
@@ -1938,26 +1824,109 @@ function VenueExplorer({ onSelectTeam }) {
         ))}
       </div>
 
-      {/* Game cards — click opens modal */}
-      <div className="venue-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-        {filteredGames.map(game => (
-          <div key={game.id} onClick={() => setOpenGame(game)}
-            style={{ background: "rgba(255,255,255,0.04)", border: "2px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,215,0,0.45)"; e.currentTarget.style.background = "rgba(255,215,0,0.06)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-              <span style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>{game.round}</span>
-              <span style={{ fontSize: 13, color: "rgba(255,215,0,0.5)" }}>↗</span>
+      {/* Game cards — tap to expand inline */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {filteredGames.map(game => {
+          const isOpen = openGame?.id === game.id;
+          const cardTeams = getPossibleTeams(game);
+          const cardQ = encodeURIComponent(`FIFA World Cup 2026 ${game.city}`);
+          const r32match = game.r32id ? R32.find(m => m.id === game.r32id) : null;
+          const top4 = r32match ? getTopMatchups(r32match, 4) : [];
+
+          return (
+            <div key={game.id}
+              style={{ background: isOpen ? "rgba(255,215,0,0.06)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? "rgba(255,215,0,0.45)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s, background 0.2s" }}
+            >
+              {/* Card header — always visible, tap to toggle */}
+              <div onClick={() => setOpenGame(isOpen ? null : game)}
+                style={{ padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <span style={{ background: "rgba(255,215,0,0.15)", color: "#FFD700", fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 10, letterSpacing: "0.06em", textTransform: "uppercase", flexShrink: 0 }}>{game.round}</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, whiteSpace: "nowrap" }}>{game.date} · {game.time}</span>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{game.city}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>📍 {game.stadium}</div>
+                </div>
+                <span style={{ fontSize: 18, color: "rgba(255,215,0,0.6)", flexShrink: 0, transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</span>
+              </div>
+
+              {/* Expanded content */}
+              {isOpen && (
+                <div style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,215,0,0.12)" }}>
+
+                  {/* Slot label */}
+                  {game.r32id && getMatchupLabel(game) && (
+                    <div style={{ paddingTop: 14, fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>
+                      📋 {getMatchupLabel(game)}
+                    </div>
+                  )}
+
+                  {/* Top 4 matchups */}
+                  {top4.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🔮 Most Likely Matchups</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {top4.map(({ teamA, teamB, prob }, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px 12px" }}>
+                            <span style={{ fontSize: 10, fontWeight: 900, color: i === 0 ? "#FFD700" : "#445", width: 18, flexShrink: 0 }}>#{i+1}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5, flex: 1, minWidth: 0 }}>
+                              <Flag name={teamA} size={14} />
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamA}</span>
+                              <span style={{ fontSize: 10, color: "#445", flexShrink: 0 }}>vs</span>
+                              <Flag name={teamB} size={14} />
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamB}</span>
+                            </div>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: i === 0 ? "#FFD700" : "#556", flexShrink: 0 }}>{(prob * 100).toFixed(1)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tickets */}
+                  <div>
+                    <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🎫 Get Tickets</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <a href={`https://www.stubhub.com/search?q=${cardQ}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "9px 18px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 13, borderRadius: 10, textDecoration: "none" }}
+                      >🎫 StubHub</a>
+                      <a href={`https://www.vividseats.com/search?q=${cardQ}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "9px 18px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 13, borderRadius: 10, textDecoration: "none", border: "1px solid rgba(168,85,247,0.4)" }}
+                      >🎟️ Vivid Seats</a>
+                    </div>
+                  </div>
+
+                  {/* Possible teams */}
+                  {cardTeams ? (
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 8 }}>
+                        <strong style={{ color: "#fff" }}>{cardTeams.length} teams</strong> could play here — tap to simulate their path:
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {cardTeams.map(team => (
+                          <button key={team} onClick={() => { onSelectTeam(team); setOpenGame(null); }}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
+                          >
+                            <Flag name={team} size={13} />{team}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, margin: 0 }}>
+                      Teams depend on earlier results. Simulate a path to see if they reach {game.city}.
+                    </p>
+                  )}
+
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginBottom: 4 }}>{game.city}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>📍 {game.stadium}</div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>📅 {game.date} · {game.time}</div>
-              <span style={{ fontSize: 10, color: "rgba(255,215,0,0.5)", fontWeight: 700 }}>Tap for 🎫</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
