@@ -1757,6 +1757,174 @@ const getTopMatchups = (r32match, topN = 4) => {
   return matchups.sort((a,b) => b.prob - a.prob).slice(0, topN);
 };
 
+// ─── WORLD CUP MAP ─────────────────────────────────────────────────────────────
+const MAP_VENUES = [
+  { city: "New York/NJ",        stadium: "MetLife Stadium",          lat: 40.813, lon: -74.074, matches: 8,  note: "FINAL — July 19",          country: "USA"    },
+  { city: "Los Angeles",        stadium: "SoFi Stadium",             lat: 33.953, lon: -118.339, matches: 8, note: "US opening match",          country: "USA"    },
+  { city: "Los Angeles",        stadium: "Rose Bowl",                lat: 34.162, lon: -118.168, matches: 6, note: "Historic Rose Bowl",        country: "USA"    },
+  { city: "Dallas",             stadium: "AT&T Stadium",             lat: 32.748, lon: -97.093,  matches: 9, note: "Most matches (9)",          country: "USA"    },
+  { city: "San Francisco",      stadium: "Levi's Stadium",           lat: 37.403, lon: -121.970, matches: 6, note: "",                          country: "USA"    },
+  { city: "Seattle",            stadium: "Lumen Field",              lat: 47.595, lon: -122.332, matches: 6, note: "",                          country: "USA"    },
+  { city: "Houston",            stadium: "NRG Stadium",              lat: 29.685, lon: -95.411,  matches: 7, note: "Retractable roof",          country: "USA"    },
+  { city: "Atlanta",            stadium: "Mercedes-Benz Stadium",    lat: 33.755, lon: -84.401,  matches: 6, note: "Soccer capital of USA",     country: "USA"    },
+  { city: "Miami",              stadium: "Hard Rock Stadium",        lat: 25.958, lon: -80.239,  matches: 6, note: "",                          country: "USA"    },
+  { city: "Philadelphia",       stadium: "Lincoln Financial Field",  lat: 39.901, lon: -75.168,  matches: 6, note: "July 4th match",            country: "USA"    },
+  { city: "Boston",             stadium: "Gillette Stadium",         lat: 42.091, lon: -71.264,  matches: 6, note: "",                          country: "USA"    },
+  { city: "Kansas City",        stadium: "Arrowhead Stadium",        lat: 39.049, lon: -94.484,  matches: 6, note: "World's loudest stadium",   country: "USA"    },
+  { city: "Toronto",            stadium: "BMO Field",                lat: 43.633, lon: -79.418,  matches: 6, note: "Canada opening match",      country: "Canada" },
+  { city: "Vancouver",          stadium: "BC Place",                 lat: 49.277, lon: -123.112, matches: 6, note: "",                          country: "Canada" },
+  { city: "Mexico City",        stadium: "Estadio Azteca",           lat: 19.303, lon: -99.150,  matches: 5, note: "Tournament opening match",  country: "Mexico" },
+  { city: "Guadalajara",        stadium: "Estadio Akron",            lat: 20.686, lon: -103.466, matches: 3, note: "",                          country: "Mexico" },
+  { city: "Monterrey",          stadium: "Estadio BBVA",             lat: 25.669, lon: -100.310, matches: 5, note: "",                          country: "Mexico" },
+];
+
+const MAP_W = 960, MAP_H = 600;
+
+function getVenueColor(v) {
+  if (v.note.includes("FINAL"))   return "#E24B4A";
+  if (v.country === "Canada")     return "#ef4444";
+  if (v.country === "Mexico")     return "#22c55e";
+  return "#378ADD";
+}
+
+function WorldCupMap({ onCityClick }) {
+  const svgRef       = useRef(null);
+  const containerRef = useRef(null);
+  const [ready,      setReady]   = useState(false);
+  const [selected,   setSelected]= useState(null);
+  const [tooltip,    setTooltip] = useState({ visible: false, x: 0, y: 0, venue: null });
+
+  const proj = React.useMemo(() =>
+    window.d3?.geoMercator().center([-97, 37]).scale(780).translate([MAP_W / 2, MAP_H / 2])
+  , [ready]);
+
+  useEffect(() => {
+    const loadAndDraw = () => {
+      if (!window.d3 || !window.topojson) return;
+      const pathGen = window.d3.geoPath().projection(
+        window.d3.geoMercator().center([-97, 37]).scale(780).translate([MAP_W / 2, MAP_H / 2])
+      );
+      const svg = window.d3.select(svgRef.current);
+      svg.selectAll("*").remove();
+      svg.append("rect").attr("width", MAP_W).attr("height", MAP_H).attr("fill", "transparent");
+
+      Promise.all([
+        fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(r => r.json()),
+        fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(r => r.json()),
+      ]).then(([us, world]) => {
+        const countries = window.topojson.feature(world, world.objects.countries);
+        const states    = window.topojson.feature(us, us.objects.states);
+        svg.selectAll(".mexico").data(countries.features.filter(f => f.id === "484"))
+          .enter().append("path").attr("d", pathGen).attr("fill","#0a2a0a").attr("stroke","#14532d").attr("stroke-width","0.7");
+        svg.selectAll(".state").data(states.features.filter(f => f.id !== "02" && f.id !== "15"))
+          .enter().append("path").attr("d", pathGen).attr("fill","#1a2a4a").attr("stroke","#2a4a8a").attr("stroke-width","0.6");
+        svg.selectAll(".canada").data(countries.features.filter(f => f.id === "124"))
+          .enter().append("path").attr("d", pathGen).attr("fill","#3a0d0d").attr("stroke","#a03020").attr("stroke-width","0.7");
+        setReady(true);
+      });
+    };
+
+    const ensureLibs = () => {
+      const needD3  = !window.d3;
+      const needTopo= !window.topojson;
+      let loaded = 0;
+      const total = (needD3 ? 1 : 0) + (needTopo ? 1 : 0);
+      if (total === 0) { loadAndDraw(); return; }
+      const onLoad = () => { loaded++; if (loaded === total) loadAndDraw(); };
+      if (needD3)   { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"; s.onload = onLoad; document.head.appendChild(s); }
+      if (needTopo) { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"; s.onload = onLoad; document.head.appendChild(s); }
+    };
+    ensureLibs();
+  }, []);
+
+  const project = (v) => {
+    if (!window.d3) return null;
+    const p = window.d3.geoMercator().center([-97, 37]).scale(780).translate([MAP_W / 2, MAP_H / 2]);
+    return p([v.lon, v.lat]);
+  };
+
+  const handleDotEnter = (e, v) => {
+    if (!svgRef.current || !containerRef.current) return;
+    const coords = project(v);
+    if (!coords) return;
+    const svgRect  = svgRef.current.getBoundingClientRect();
+    const contRect = containerRef.current.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      x: coords[0] * (svgRect.width / MAP_W) + svgRect.left - contRect.left + 14,
+      y: coords[1] * (svgRect.height / MAP_H) + svgRect.top  - contRect.top  - 10,
+      venue: v,
+    });
+  };
+
+  const handleDotClick = (v) => {
+    setSelected(s => s?.stadium === v.stadium ? null : v);
+    onCityClick(v.city);
+  };
+
+  return (
+    <div style={{ marginBottom: 8, margin: "0 -14px 8px" }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", textAlign: "center", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6, paddingTop: 8 }}>
+        Tap a city to filter matches below
+      </div>
+      <div ref={containerRef} style={{ position: "relative", borderRadius: 0, overflow: "visible", border: "none", margin: "0 -14px" }}>
+        {/* Base map layer */}
+        <svg ref={svgRef} viewBox={`0 0 ${MAP_W} ${MAP_H}`} style={{ width: "100%", display: "block", background: "transparent" }} />
+
+        {/* Dots layer */}
+        <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 10 }}>
+          {ready && MAP_VENUES.map((v, i) => {
+            const coords = project(v);
+            if (!coords || coords[0] < 0 || coords[0] > MAP_W || coords[1] < 0 || coords[1] > MAP_H) return null;
+            const isSel   = selected?.stadium === v.stadium;
+            const isFinal = v.note.includes("FINAL");
+            const color   = getVenueColor(v);
+            const r       = isFinal ? 10 : 7;
+            return (
+              <g key={i} transform={`translate(${coords[0]},${coords[1]})`}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleDotClick(v)}
+                onMouseEnter={e => handleDotEnter(e, v)}
+                onMouseLeave={() => setTooltip({ visible: false })}
+              >
+                <circle r={r + 7} fill={color} opacity={0.12} />
+                {isSel && <circle r={r + 5} fill="none" stroke={color} strokeWidth={2} opacity={0.9} />}
+                <circle r={r} fill={color} stroke="white" strokeWidth={isSel ? 2.5 : 1.5} />
+                {isFinal && <text textAnchor="middle" dy="0.35em" fontSize="10" fill="white" pointerEvents="none">★</text>}
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Tooltip */}
+        {tooltip.visible && tooltip.venue && (
+          <div style={{ position: "absolute", top: tooltip.y, left: tooltip.x, background: "rgba(6,14,31,0.97)", border: "1px solid rgba(255,215,0,0.35)", borderRadius: 10, padding: "10px 14px", pointerEvents: "none", minWidth: 190, zIndex: 9999 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>{tooltip.venue.city}</div>
+            <div style={{ fontSize: 11, color: getVenueColor(tooltip.venue), fontWeight: 600, marginTop: 2 }}>{tooltip.venue.stadium}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>{tooltip.venue.matches} matches{tooltip.venue.note ? " · " + tooltip.venue.note : ""}</div>
+            <div style={{ fontSize: 10, color: "#FFD700", marginTop: 6, fontWeight: 600 }}>Tap to see matches ↓</div>
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 10 }}>
+        {[["USA", "#378ADD"], ["Canada", "#ef4444"], ["Mexico", "#22c55e"], ["Final", "#E24B4A"]].map(([label, color]) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: color }} />{label}
+          </div>
+        ))}
+        {selected && (
+          <button onClick={() => { setSelected(null); onCityClick(null); }}
+            style={{ fontSize: 10, color: "rgba(255,100,100,0.6)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            ✕ clear filter
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── KNOCKOUT VENUE DATA ───────────────────────────────────────────────────────
 const KNOCKOUT_VENUES = [
   // ── ROUND OF 32 ──
@@ -1804,16 +1972,57 @@ const KNOCKOUT_VENUES = [
 
 const ROUND_ORDER = ["Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
 
-function VenueExplorer({ onSelectTeam, scrollToFirstGame }) {
-  const [openGame, setOpenGame] = useState(null);
+function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
+  const [openGame,      setOpenGame]      = useState(null);
   const [selectedRound, setSelectedRound] = useState("Round of 32");
+  const [cityFilter,    setCityFilter]    = useState(null);
   const firstGameRef = useRef(null);
 
   const scrollToFirst = () => setTimeout(() => firstGameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
 
   useEffect(() => { scrollToFirst(); }, []);
 
-  const filteredGames = KNOCKOUT_VENUES.filter(g => g.round === selectedRound);
+  // When a city is clicked on the map, apply it as a filter
+  useEffect(() => {
+    if (initialCity) {
+      setCityFilter(initialCity);
+      setOpenGame(null);
+      onCityHandled?.();
+      scrollToFirst();
+    }
+  }, [initialCity]);
+
+  // city-normalizer: map dot city names to KNOCKOUT_VENUES city strings
+  const CITY_NORM = {
+    "Dallas":         ["Dallas (Arlington), TX", "Dallas, TX"],
+    "Los Angeles":    ["Los Angeles, CA"],
+    "San Francisco":  ["San Francisco, CA"],
+    "Seattle":        ["Seattle, WA"],
+    "Houston":        ["Houston, TX"],
+    "Atlanta":        ["Atlanta, GA"],
+    "Miami":          ["Miami, FL"],
+    "Philadelphia":   ["Philadelphia, PA"],
+    "New York/NJ":    ["New York/New Jersey"],
+    "Boston":         ["Boston, MA"],
+    "Kansas City":    ["Kansas City, MO"],
+    "Toronto":        ["Toronto, Canada"],
+    "Vancouver":      ["Vancouver, Canada"],
+    "Mexico City":    ["Mexico City, Mexico"],
+    "Guadalajara":    ["Guadalajara, Mexico"],
+    "Monterrey":      ["Monterrey, Mexico"],
+  };
+
+  const cityMatches = (gameCity, filterCity) => {
+    if (!filterCity) return true;
+    const norms = CITY_NORM[filterCity] || [filterCity];
+    return norms.some(n => gameCity?.includes(n.split(",")[0]) || n.includes(gameCity?.split(",")[0] || ""));
+  };
+
+  const allFiltered = cityFilter
+    ? KNOCKOUT_VENUES.filter(g => cityMatches(g.city, cityFilter))
+    : KNOCKOUT_VENUES.filter(g => g.round === selectedRound);
+
+  const filteredGames = cityFilter ? allFiltered : allFiltered;
 
   const getPossibleTeams = (game) => {
     if (!game) return null;
@@ -1859,7 +2068,19 @@ function VenueExplorer({ onSelectTeam, scrollToFirstGame }) {
         </p>
       </div>
 
-      {/* Round tabs */}
+      {/* City filter banner */}
+      {cityFilter && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 16, background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: 12, padding: "10px 16px" }}>
+          <span style={{ fontSize: 13, color: "#FFD700", fontWeight: 700 }}>📍 {cityFilter} — all matches</span>
+          <button onClick={() => { setCityFilter(null); setOpenGame(null); }}
+            style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "3px 10px", cursor: "pointer" }}>
+            ✕ clear
+          </button>
+        </div>
+      )}
+
+      {/* Round tabs — hidden when filtering by city */}
+      {!cityFilter && (
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {ROUND_ORDER.map(r => (
           <button key={r} onClick={() => { setSelectedRound(r); setOpenGame(null); scrollToFirst(); }}
@@ -1869,6 +2090,7 @@ function VenueExplorer({ onSelectTeam, scrollToFirstGame }) {
           >{r}</button>
         ))}
       </div>
+      )}
 
       {/* Game cards — tap to expand inline */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1989,6 +2211,25 @@ export default function App() {
   const [champion,          setChampion]          = useState(null);
   const [showCelebration,   setShowCelebration]   = useState(false);
   const [fadingOut,         setFadingOut]         = useState(false);
+  const [visitorCount,      setVisitorCount]      = useState(null);
+  const [venueCity,         setVenueCity]         = useState(null);
+
+  useEffect(() => {
+    const track = async () => {
+      try {
+        const key = "visitor_count";
+        let current = 0;
+        try {
+          const res = await window.storage.get(key, true);
+          current = parseInt(res?.value || "0", 10);
+        } catch {}
+        const next = current + 1;
+        await window.storage.set(key, String(next), true);
+        setVisitorCount(next);
+      } catch {}
+    };
+    track();
+  }, []);
 
   const setGroup = (g, winner, runner, third) =>
     setAllGroupStandings((p) => ({ ...p, [g]: { winner, runner, third } }));
@@ -2267,7 +2508,12 @@ export default function App() {
           {/* ── VENUE EXPLORER — inside hero, below mode cards ── */}
           {heroMode === "venue" && (
             <div style={{ maxWidth: 860, margin: "16px auto 0", width: "100%", animation: "fadeSlideUp 0.4s ease both" }}>
-              <VenueExplorer onSelectTeam={(team) => { handleTeamChange(team); setHeroMode("team"); setPhase("group"); }} />
+              <WorldCupMap onCityClick={(city) => { setVenueCity(city); }} />
+              <VenueExplorer
+                onSelectTeam={(team) => { handleTeamChange(team); setHeroMode("team"); setPhase("group"); }}
+                initialCity={venueCity}
+                onCityHandled={() => setVenueCity(null)}
+              />
             </div>
           )}
 
@@ -2283,8 +2529,8 @@ export default function App() {
         >↺ reset</button>
       )}
 
-      {/* ── TABS (team mode only) ── */}
-      {heroMode === "team" && (
+      {/* ── TABS (team mode only, only shown after team selected) ── */}
+      {heroMode === "team" && mainTeam && (
         <div className="tab-bar" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "16px 16px 0", flexWrap: "wrap", animation: "fadeIn 0.3s ease both" }}>
           {TABS.filter(t => t.id !== "venue").map((t) => (
             <button key={t.id} onClick={() => setPhase(t.id)}
@@ -2305,7 +2551,7 @@ export default function App() {
           </div>
         )}
 
-        {heroMode === "team" && (
+        {heroMode === "team" && mainTeam && (
           <div style={{ animation: "fadeSlideUp 0.4s ease both" }}>
 
             {phase === "group" && (
@@ -2394,6 +2640,15 @@ export default function App() {
         )}
 
       </div>
+
+      {/* Visitor counter */}
+      {visitorCount && (
+        <div style={{ textAlign: "center", padding: "0 0 28px", marginTop: -20 }}>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.12)", letterSpacing: "0.12em", fontWeight: 400 }}>
+            {visitorCount.toLocaleString()} simulations run
+          </span>
+        </div>
+      )}
     </div>
   );
 }
