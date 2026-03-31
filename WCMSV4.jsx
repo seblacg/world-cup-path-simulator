@@ -221,7 +221,7 @@ function OtherTeamsDropdown({ teams, onSelect }) {
     <div style={{ position: "relative" }}>
       <button onClick={() => setOpen(o => !o)}
         style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", background: open ? "rgba(255,215,0,0.15)" : "rgba(255,255,255,0.07)", border: open ? "1px solid rgba(255,215,0,0.5)" : "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: open ? "#FFD700" : "#ddd", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}
-        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.15)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
         onMouseLeave={e => { if (!open) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#ddd"; }}}
       >
         Other ▾
@@ -231,7 +231,7 @@ function OtherTeamsDropdown({ teams, onSelect }) {
           {teams.map(team => (
             <button key={team} onClick={() => { onSelect(team); setOpen(false); }}
               style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 12px", background: "transparent", border: "none", color: "#ccc", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 6, transition: "all 0.1s", textAlign: "left" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.12)"; e.currentTarget.style.color = "#FFD700"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#ccc"; }}
             >
               <Flag name={team} size={14} />{team}
@@ -266,7 +266,7 @@ function TeamSelector({ mainTeam, onChange }) {
             padding: "10px 44px 10px 16px",
             borderRadius: 12,
             background: "rgba(255,255,255,0.08)",
-            border: "2px solid rgba(255,215,0,0.5)",
+            border: "2px solid rgba(255,255,255,0.3)",
             color: mainTeam ? "#fff" : "#aaa",
             fontSize: 15,
             fontWeight: 700,
@@ -445,8 +445,8 @@ function TicketPrices({ round, city, teams }) {
   };
 
   return (
-    <div style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: 18, marginTop: 14 }}>
-      <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>🎫 Estimated Ticket Prices</div>
+    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: 18, marginTop: 14 }}>
+      <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 10 }}>🎫 Estimated Ticket Prices</div>
       <div style={{ fontSize: 12, color: "#8fa8c0", marginBottom: 14 }}>{teams} · {city}</div>
       {/* PRICES HIDDEN — re-enable when ready
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
@@ -492,6 +492,26 @@ const TEAM_COLORS = {
 };
 const teamColor = (name) => TEAM_COLORS[name] || "#FFD700";
 
+const TEAM_ABBR = {
+  "Albania":"ALB","Argentina":"ARG","Australia":"AUS","Austria":"AUT",
+  "Belgium":"BEL","Bolivia":"BOL","Brazil":"BRA","Cabo Verde":"CPV",
+  "Canada":"CAN","Chile":"CHI","Colombia":"COL","Congo DR":"COD",
+  "Costa Rica":"CRC","Côte d'Ivoire":"CIV","Croatia":"CRO","Curaçao":"CUW",
+  "Denmark":"DEN","Ecuador":"ECU","Egypt":"EGY","England":"ENG",
+  "France":"FRA","Germany":"GER","Ghana":"GHA","Haiti":"HAI",
+  "Honduras":"HON","IR Iran":"IRN","Iraq":"IRQ","Ireland":"IRL",
+  "Japan":"JPN","Jordan":"JOR","Korea Republic":"KOR","Mexico":"MEX",
+  "Morocco":"MAR","Netherlands":"NED","New Zealand":"NZL","Nigeria":"NGA",
+  "Norway":"NOR","Panama":"PAN","Paraguay":"PAR","Peru":"PER",
+  "Poland":"POL","Portugal":"POR","Qatar":"QAT","Romania":"ROU",
+  "Saudi Arabia":"KSA","Scotland":"SCO","Senegal":"SEN","Serbia":"SRB",
+  "Slovakia":"SVK","South Africa":"RSA","Spain":"ESP","Suriname":"SUR",
+  "Sweden":"SWE","Switzerland":"SUI","Tunisia":"TUN","Türkiye":"TUR",
+  "Ukraine":"UKR","Uruguay":"URU","USA":"USA","Uzbekistan":"UZB",
+  "Wales":"WAL","Bosnia/Italy/N.Ireland/Wales":"B/I/N/W",
+};
+const abbr = (name) => TEAM_ABBR[name] || (name?.slice(0,3).toUpperCase()) || "?";
+
 // ─── GROUP CARD ────────────────────────────────────────────────────────────────
 function GroupCard({ group, teams, standing, onSet, mainTeam }) {
   const [order, setOrder] = useState([...teams]);
@@ -526,16 +546,16 @@ function GroupCard({ group, teams, standing, onSet, mainTeam }) {
           ⭐ {mainTeam}'s Group
         </div>
       )}
-      <div style={{ fontWeight: 800, fontSize: 13, color: hasMain ? "#FFD700" : "#8fa8c0", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>Group {group}</div>
+      <div style={{ fontWeight: 800, fontSize: 13, color: hasMain ? "#fff" : "#8fa8c0", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14 }}>Group {group}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {order.map((team, idx) => {
           const ps = POS[idx];
           const isMain = team === mainTeam;
           return (
-            <div key={team} style={{ display: "flex", alignItems: "center", gap: 9, background: isMain ? "rgba(255,215,0,0.13)" : ps.bg, border: `1px solid ${isMain ? "#FFD70066" : ps.color + "33"}`, borderRadius: 9, padding: "8px 10px" }}>
+            <div key={team} style={{ display: "flex", alignItems: "center", gap: 9, background: isMain ? "rgba(255,255,255,0.1)" : ps.bg, border: `1px solid ${isMain ? "#FFD70066" : ps.color + "33"}`, borderRadius: 9, padding: "8px 10px" }}>
               <span style={{ fontSize: 11, fontWeight: 800, color: ps.color, width: 26, textAlign: "center", flexShrink: 0 }}>{ps.label}</span>
               <Flag name={team} size={17} />
-              <span style={{ flex: 1, fontSize: 13, color: isMain ? "#FFD700" : "#ddd", fontWeight: isMain ? 800 : 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team}</span>
+              <span style={{ flex: 1, fontSize: 13, color: isMain ? "#fff" : "#ddd", fontWeight: isMain ? 800 : 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team}</span>
               <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
                 {idx > 0           && <button onClick={() => swap(idx, idx - 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "#94a8bf", cursor: "pointer", fontSize: 14, padding: "3px 8px", lineHeight: 1, transition: "all 0.15s" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.3)"; }} onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#94a8bf"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>↑</button>}
                 {idx < order.length - 1 && <button onClick={() => swap(idx, idx + 1)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 5, color: "#94a8bf", cursor: "pointer", fontSize: 14, padding: "3px 8px", lineHeight: 1, transition: "all 0.15s" }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.3)"; }} onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#94a8bf"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>↓</button>}
@@ -594,7 +614,7 @@ function MatchCard({ match, t1, t2, winner, onPick, highlight, mainTeam, label, 
   const btnHover = (e, team) => {
     if (winner === team) return;
     e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-    e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)";
+    e.currentTarget.style.borderColor = "rgba(255,255,255,0.5)";
     e.currentTarget.style.color = "#fff";
   };
   const btnLeave = (e, team) => {
@@ -678,7 +698,7 @@ function ContinueBtn({ onClick, label, onBack, backLabel, incomplete, incomplete
           </button>
         )}
         <button onClick={handleContinue}
-          style={{ flex: 1, padding: "13px 0", background: incomplete ? "linear-gradient(135deg,#FFD700,#FFA500)" : "linear-gradient(135deg,#4ade80,#22c55e)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", transition: "all 0.4s", boxShadow: incomplete ? "none" : "0 0 20px rgba(74,222,128,0.35)" }}
+          style={{ flex: 1, padding: "13px 0", background: incomplete ? "linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0.08))" : "linear-gradient(135deg,#4ade80,#22c55e)", border: "none", borderRadius: 10, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", transition: "all 0.4s", boxShadow: incomplete ? "none" : "0 0 20px rgba(74,222,128,0.35)" }}
           onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
         >
@@ -731,17 +751,17 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
     const hasWinner = !!w;
     const isMain = t1main || t2main || w === mainTeam;
 
-    const cardW = compact ? 82 : 110;
-    const fontSize = compact ? 8 : 10;
-    const flagSize = compact ? 9 : 12;
-    const rowPad = compact ? "3px 5px" : "5px 7px";
+    const cardW = compact ? 58 : 72;
+    const fontSize = compact ? 8 : 9;
+    const flagSize = compact ? 9 : 11;
+    const rowPad = compact ? "3px 4px" : "4px 6px";
 
     const TeamRow = ({ team, won, lost, isMainTeam }) => {
       const color = won
-        ? (isMainTeam ? "#4ade80" : "#4ade80")   // always green when selected
+        ? "#4ade80"
         : lost
-          ? "#33404a"                              // greyed out when lost
-          : isMainTeam ? "#86efac" : "#bcc8d4";   // default states
+          ? "#33404a"
+          : isMainTeam ? "#86efac" : "#bcc8d4";
 
       const bg = won
         ? (isMainTeam ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.12)")
@@ -751,9 +771,9 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
         <button
           onClick={() => !isPlaceholder(team) && sw(match.id, team)}
           style={{
-            display: "flex", alignItems: "center", gap: 5,
+            display: "flex", alignItems: "center", gap: 4,
             width: "100%", padding: rowPad,
-            background: bg, border: "none", borderRadius: 5,
+            background: bg, border: "none", borderRadius: 4,
             cursor: isPlaceholder(team) ? "default" : "pointer",
             transition: "all 0.15s", textAlign: "left",
             opacity: lost ? 0.38 : 1,
@@ -765,9 +785,9 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
           <span style={{
             fontSize, fontWeight: won ? 800 : 600, color,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            maxWidth: compact ? 50 : 70,
-          }}>{team || "?"}</span>
-          {won && <span style={{ marginLeft: "auto", fontSize: compact ? 8 : 10, color: "#4ade80" }}>✓</span>}
+            maxWidth: compact ? 32 : 42, fontFamily: "monospace",
+          }}>{isPlaceholder(team) ? "?" : abbr(team)}</span>
+          {won && <span style={{ marginLeft: "auto", fontSize: 7, color: "#4ade80" }}>✓</span>}
         </button>
       );
     };
@@ -778,11 +798,11 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
         border: isMain
           ? (hasWinner ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(74,222,128,0.25)")
           : "1px solid rgba(255,255,255,0.09)",
-        borderRadius: 7, overflow: "hidden",
+        borderRadius: 6, overflow: "hidden",
         width: cardW, minWidth: cardW,
         transition: "border-color 0.15s",
       }}>
-        <div style={{ fontSize: compact ? 8 : 9, color: "#445", padding: compact ? "2px 6px" : "3px 8px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 600, letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ fontSize: compact ? 7 : 8, color: "#445", padding: compact ? "2px 4px" : "2px 6px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 600, letterSpacing: "0.03em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {match.city}
         </div>
         <TeamRow team={match.t1} won={t1won} lost={hasWinner && !t1won} isMainTeam={t1main} />
@@ -792,48 +812,80 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
     );
   };
 
-  // Shared bracket layout — renders all rounds spaced evenly
+  // Two-sided bracket — left half flows →, right half flows ←, meet at Final
   const BracketLayout = ({ compact = false }) => {
-    const slotH = compact ? 42 : 52;
-    const gap   = compact ? 8 : 12;
-    const totalSlots = 32;
+    const slotH  = compact ? 36 : 44;
+    const gap    = compact ? 4 : 7;
+    const cardH  = compact ? 30 : 38;
+    const totalSlots = 16; // 16 slots per side
     const totalH = totalSlots * slotH;
+
+    // Split each round into left half (first half) and right half (second half)
+    const r32L = r32Teams.slice(0, 8),  r32R = r32Teams.slice(8);
+    const r16L = r16Teams.slice(0, 4),  r16R = r16Teams.slice(4);
+    const qfL  = qfTeams.slice(0, 2),   qfR  = qfTeams.slice(2);
+    const sfL  = sfTeams.slice(0, 1),   sfR  = sfTeams.slice(1);
+
+    const leftRounds  = [
+      { key: "r32L",  label: "Round of 32", matches: r32L },
+      { key: "r16L",  label: "Round of 16", matches: r16L },
+      { key: "qfL",   label: "Quarters",    matches: qfL  },
+      { key: "sfL",   label: "Semis",       matches: sfL  },
+    ];
+    const rightRounds = [
+      { key: "sfR",   label: "Semis",       matches: sfR  },
+      { key: "qfR",   label: "Quarters",    matches: qfR  },
+      { key: "r16R",  label: "Round of 16", matches: r16R },
+      { key: "r32R",  label: "Round of 32", matches: r32R },
+    ];
+
+    const RoundCol = ({ round, flip = false }) => {
+      const matchCount = round.matches.length;
+      const spacing = totalH / matchCount;
+      return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: flip ? "flex-end" : "center" }}>
+          <div style={{ fontSize: compact ? 7 : 8, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 4 : 6, textAlign: "center", whiteSpace: "nowrap" }}>
+            {round.label}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {round.matches.map((match, mi) => (
+              <div key={match.id} style={{ paddingTop: mi === 0 ? (spacing - cardH) / 2 : spacing - cardH }}>
+                <BracketMatch match={match} compact={compact} />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const finalMatch = { id: 104, t1: sf1w||"?", t2: sf2w||"?", date: "Jul 19", city: "New York/NJ" };
+    const champion = mw(104);
 
     return (
       <div style={{ display: "flex", gap, alignItems: "flex-start", minWidth: "max-content", padding: compact ? "4px 2px" : "8px 4px" }}>
-        {rounds.map((round) => {
-          const matchCount = round.matches.length;
-          const spacing = totalH / matchCount;
-          const cardH = compact ? 36 : 44;
-          return (
-            <div key={round.key} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ fontSize: compact ? 7 : 8, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 4 : 6, textAlign: "center", whiteSpace: "nowrap" }}>
-                {round.label}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {round.matches.map((match, mi) => (
-                  <div key={match.id} style={{ paddingTop: mi === 0 ? (spacing - cardH) / 2 : spacing - cardH }}>
-                    <BracketMatch match={match} compact={compact} />
-                  </div>
-                ))}
-              </div>
+        {/* Left side → */}
+        {leftRounds.map(r => <RoundCol key={r.key} round={r} />)}
+
+        {/* Center — Final + Champion */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 4 : 6 }}>
+          <div style={{ fontSize: compact ? 7 : 8, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 4 : 6, textAlign: "center" }}>Final</div>
+          <div style={{ marginTop: totalH / 2 - cardH / 2 - (compact ? 16 : 20) }}>
+            <BracketMatch match={finalMatch} compact={compact} />
+            <div style={{ marginTop: compact ? 6 : 10, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              {champion ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 3 : 5, padding: compact ? "5px 7px" : "8px 12px", background: "rgba(74,222,128,0.13)", border: "2px solid rgba(74,222,128,0.5)", borderRadius: 8 }}>
+                  <Flag name={champion} size={compact ? 14 : 20} />
+                  <span style={{ fontSize: compact ? 7 : 10, fontWeight: 900, color: "#4ade80" }}>{champion}</span>
+                </div>
+              ) : (
+                <div style={{ padding: compact ? "5px 7px" : "8px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#445", fontSize: compact ? 7 : 9, fontWeight: 600 }}>🏆</div>
+              )}
             </div>
-          );
-        })}
-        {/* Champion */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ fontSize: compact ? 7 : 8, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: compact ? 4 : 6, textAlign: "center" }}>🏆</div>
-          <div style={{ marginTop: totalH / 2 - (compact ? 18 : 22) }}>
-            {mw(104) ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 3 : 5, padding: compact ? "5px 7px" : "8px 12px", background: "rgba(74,222,128,0.13)", border: "2px solid rgba(74,222,128,0.5)", borderRadius: 8 }}>
-                <Flag name={mw(104)} size={compact ? 14 : 20} />
-                <span style={{ fontSize: compact ? 7 : 10, fontWeight: 900, color: "#4ade80" }}>{mw(104)}</span>
-              </div>
-            ) : (
-              <div style={{ padding: compact ? "5px 7px" : "8px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "#445", fontSize: compact ? 7 : 9, fontWeight: 600 }}>TBD</div>
-            )}
           </div>
         </div>
+
+        {/* Right side ← */}
+        {rightRounds.map(r => <RoundCol key={r.key} round={r} flip />)}
       </div>
     );
   };
@@ -846,9 +898,9 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
           onClick={() => setShowSnapshot(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 3000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16 }}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: "#070b12", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14, padding: "16px 16px 12px", maxWidth: "98vw", maxHeight: "92vh", overflow: "auto", boxShadow: "0 0 60px rgba(0,0,0,0.9)" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#070b12", border: "1px solid rgba(96,165,250,0.2)", borderRadius: 14, padding: "16px 16px 12px", maxWidth: "98vw", maxHeight: "92vh", overflow: "auto", boxShadow: "0 0 60px rgba(0,0,0,0.9)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: "#FFD700", textTransform: "uppercase", letterSpacing: "0.1em" }}>🏟️ Full Bracket Snapshot</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.1em" }}>🏟️ Full Bracket Snapshot</span>
               <button onClick={() => setShowSnapshot(false)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#aaa", fontSize: 13, padding: "4px 12px", cursor: "pointer", fontWeight: 700 }}>✕ Close</button>
             </div>
             <div style={{ overflowX: "auto" }}>
@@ -864,7 +916,7 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
         <button
           onClick={() => setShowSnapshot(true)}
           style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, color: "#8fa8c0", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", letterSpacing: "0.04em" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#FFD700"; e.currentTarget.style.background = "rgba(255,215,0,0.08)"; }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(96,165,250,0.6)"; e.currentTarget.style.color = "#60a5fa"; e.currentTarget.style.background = "rgba(96,165,250,0.08)"; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#8fa8c0"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
         >
           🔍 Full Snapshot
@@ -941,13 +993,13 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
 
   // Prominent auto-confirm button style
   const autoBtn = {
-    padding: "10px 28px", background: "rgba(255,215,0,0.08)",
-    border: "1px solid rgba(255,215,0,0.4)", borderRadius: 30,
-    color: "rgba(255,215,0,0.75)", fontWeight: 500, fontSize: 12,
+    padding: "10px 28px", background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.25)", borderRadius: 30,
+    color: "rgba(255,255,255,0.7)", fontWeight: 500, fontSize: 12,
     cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.2s",
   };
-  const autoBtnHover = (e) => { e.target.style.background = "rgba(255,215,0,0.16)"; e.target.style.borderColor = "rgba(255,215,0,0.8)"; e.target.style.color = "#FFD700"; };
-  const autoBtnLeave = (e) => { e.target.style.background = "rgba(255,215,0,0.08)"; e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "rgba(255,215,0,0.75)"; };
+  const autoBtnHover = (e) => { e.target.style.background = "rgba(255,255,255,0.14)"; e.target.style.borderColor = "rgba(255,255,255,0.7)"; e.target.style.color = "#fff"; };
+  const autoBtnLeave = (e) => { e.target.style.background = "rgba(255,255,255,0.06)"; e.target.style.borderColor = "rgba(255,255,255,0.25)"; e.target.style.color = "rgba(255,255,255,0.7)"; };
 
   const scrollToNextAutoBtn = (ref) => setTimeout(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
 
@@ -1021,9 +1073,9 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
 
   if (!mainTeam) {
     return (
-      <div style={{ textAlign: "center", padding: 40, background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14 }}>
+      <div style={{ textAlign: "center", padding: 40, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14 }}>
         <div style={{ fontSize: 44, marginBottom: 12 }}>🏟️</div>
-        <p style={{ color: "#FFD700", fontWeight: 700, fontSize: 14 }}>Select your team at the top to highlight their matches!</p>
+        <p style={{ color: "#60a5fa", fontWeight: 700, fontSize: 14 }}>Select your team at the top to highlight their matches!</p>
         <p style={{ color: "#8fa8c0", fontSize: 13 }}>You can still simulate all matches below.</p>
       </div>
     );
@@ -1043,17 +1095,17 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   return (
     <div ref={topRef}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: "#FFD700", marginBottom: 6 }}>🏆 Knockout Stage</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 900, color: "#60a5fa", marginBottom: 6 }}>🏆 Knockout Stage</h2>
         <p style={{ color: "#8fa8c0", fontSize: 13, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
           <Flag name={mainTeam} size={16} />
-          <strong style={{ color: "#FFD700" }}>{mainTeam}</strong> finishes{" "}
+          <strong style={{ color: "#fff" }}>{mainTeam}</strong> finishes{" "}
           <strong style={{ color: "#FFD700" }}>{teamFinish === "winner" ? "1st" : "2nd"}</strong> in Group {teamGroup}
         </p>
       </div>
 
       {/* Path tracker */}
-      <div style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.18)", borderRadius: 12, padding: 14, marginBottom: 22 }}>
-        <div style={{ fontSize: 10, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.18)", borderRadius: 12, padding: 14, marginBottom: 22 }}>
+        <div style={{ fontSize: 10, color: "#60a5fa", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
           <Flag name={mainTeam} size={12} /> {mainTeam}'s Path
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
@@ -1076,7 +1128,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
         <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 24, padding: 3, border: "1px solid rgba(255,255,255,0.1)" }}>
           {[{ id: "path", label: "🎯 My Path" }, { id: "bracket", label: "🏟️ Full Bracket" }].map(v => (
             <button key={v.id} onClick={() => setViewMode(v.id)}
-              style={{ padding: "7px 18px", borderRadius: 20, border: "none", background: viewMode === v.id ? "#FFD700" : "transparent", color: viewMode === v.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 12, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em" }}
+              style={{ padding: "7px 18px", borderRadius: 20, border: "none", background: viewMode === v.id ? "#60a5fa" : "transparent", color: viewMode === v.id ? "#fff" : "#8fa8c0", fontWeight: 800, fontSize: 12, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em" }}
             >{v.label}</button>
           ))}
         </div>
@@ -1360,8 +1412,8 @@ function ShareButton({ mainTeam, teamFinish, teamGroup, allGroupStandings, knock
     <div style={{ position: "relative", display: "inline-block" }}>
       <button
         onClick={doShare}
-        style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,#FFD700,#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", transition: "all 0.15s" }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,215,0,0.35)"; }}
+        style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 28px", background: "linear-gradient(135deg,rgba(255,255,255,0.18),#FFA500)", border: "none", borderRadius: 12, color: "#000", fontWeight: 900, fontSize: 15, cursor: "pointer", transition: "all 0.15s" }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(255,255,255,0.15)"; }}
         onMouseLeave={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
       >
         📤 Share My Simulation
@@ -1551,7 +1603,7 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
           <Flag name={mainTeam} size={52} />
           {champion && <span style={{ fontSize: 40 }}>🏆</span>}
         </div>
-        <h2 ref={titleRef} style={{ fontSize: 26, fontWeight: 900, color: "#FFD700", marginBottom: 8 }}>{mainTeam}'s Journey 2026</h2>
+        <h2 ref={titleRef} style={{ fontSize: 26, fontWeight: 900, color: "#60a5fa", marginBottom: 8 }}>{mainTeam}'s Journey 2026</h2>
         {champion
           ? <p style={{ color: "#4ade80", fontWeight: 700, fontSize: 16 }}>🥇 World Cup Champions!</p>
           : eliminated
@@ -1568,7 +1620,7 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
           const lost = m.w && !won;
           const open = openIdx === i;
           return (
-            <div key={i} onClick={() => setOpenIdx(open ? null : i)} style={{ background: open ? "rgba(255,215,0,0.07)" : "rgba(255,255,255,0.055)", border: lost ? "1px solid rgba(248,113,113,0.35)" : won ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.13)", borderRadius: 13, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}>
+            <div key={i} onClick={() => setOpenIdx(open ? null : i)} style={{ background: open ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.055)", border: lost ? "1px solid rgba(248,113,113,0.35)" : won ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(255,255,255,0.13)", borderRadius: 13, padding: "16px 18px", cursor: "pointer", transition: "all 0.2s" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
                 <div>
                   <div style={{ fontSize: 10, color: "#7a95ae", textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>{m.round}</div>
@@ -1584,14 +1636,14 @@ function SummaryPhase({ allGroupStandings, knockoutWinners, mainTeam, teamFinish
                     ? <span style={{ padding: "5px 14px", borderRadius: 16, background: won ? "rgba(74,222,128,0.13)" : "rgba(248,113,113,0.13)", color: won ? "#4ade80" : "#f87171", fontSize: 12, fontWeight: 700 }}>{won ? "✅ Won" : "❌ Lost"}</span>
                     : <span style={{ color: "#6a85a0", fontSize: 12 }}>Tap for 🎫</span>
                   }
-                  <span style={{ color: open ? "#FFD700" : "#2a2a3a", fontSize: 16 }}>{open ? "▲" : "▼"}</span>
+                  <span style={{ color: open ? "#60a5fa" : "#2a2a3a", fontSize: 16 }}>{open ? "▲" : "▼"}</span>
                 </div>
               </div>
               {open && (() => {
                 const q = encodeURIComponent(`FIFA World Cup 2026 ${m.city}`);
                 return (
                   <div onClick={e => e.stopPropagation()} style={{ marginTop: 16, borderTop: "1px solid rgba(255,215,0,0.15)", paddingTop: 16 }}>
-                    <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,215,0,0.15)", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px" }}>
                       <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 12 }}>🎫 Get Tickets</div>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                         <a href={`https://www.stubhub.com/search?q=${q}`} target="_blank" rel="noopener noreferrer"
@@ -1663,7 +1715,7 @@ function CelebrationOverlay({ champion, onDismiss, fadingOut }) {
           textAlign: "center", padding: "40px 32px",
           background: "linear-gradient(135deg,#0a1628,#001840)",
           border: "3px solid #FFD700", borderRadius: 24, maxWidth: 440,
-          boxShadow: "0 0 80px rgba(255,215,0,0.45)",
+          boxShadow: "0 0 60px rgba(255,255,255,0.15)",
           opacity: fadingOut ? 0 : 1,
           transform: fadingOut ? "scale(0.92) translateY(-12px)" : "scale(1)",
           transition: fadingOut ? "opacity 0.5s ease-out, transform 0.5s ease-out" : "none",
@@ -1923,11 +1975,11 @@ function WorldCupMap({ onCityClick }) {
 
         {/* Tooltip */}
         {tooltip.visible && tooltip.venue && (
-          <div style={{ position: "absolute", top: tooltip.y, left: tooltip.x, background: "rgba(6,14,31,0.97)", border: "1px solid rgba(255,215,0,0.35)", borderRadius: 10, padding: "10px 14px", pointerEvents: "none", minWidth: 190, zIndex: 9999 }}>
+          <div style={{ position: "absolute", top: tooltip.y, left: tooltip.x, background: "rgba(6,14,31,0.97)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 10, padding: "10px 14px", pointerEvents: "none", minWidth: 190, zIndex: 9999 }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>{tooltip.venue.city}</div>
             <div style={{ fontSize: 11, color: getVenueColor(tooltip.venue), fontWeight: 600, marginTop: 2 }}>{tooltip.venue.stadium}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>{tooltip.venue.matches} matches{tooltip.venue.note ? " · " + tooltip.venue.note : ""}</div>
-            <div style={{ fontSize: 10, color: "#FFD700", marginTop: 6, fontWeight: 600 }}>Tap to see matches ↓</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 6, fontWeight: 600 }}>Tap to see matches ↓</div>
           </div>
         )}
       </div>
@@ -2081,7 +2133,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
     const top4 = r32match ? getTopMatchups(r32match, 4) : [];
     return (
       <div key={game.id}
-        style={{ background: isOpen ? "rgba(255,215,0,0.06)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? "rgba(255,215,0,0.45)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.15s, background 0.15s, transform 0.15s", cursor: "pointer", gridColumn: isOpen ? "1 / -1" : "auto" }}
+        style={{ background: isOpen ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.15s, background 0.15s, transform 0.15s", cursor: "pointer", gridColumn: isOpen ? "1 / -1" : "auto" }}
         onMouseEnter={e => { if (!isOpen) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; }}}
         onMouseLeave={e => { if (!isOpen) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}}
       >
@@ -2100,20 +2152,20 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
               <span style={{ color: "rgba(255,255,255,0.18)" }}>· Match {game.r32id || game.matchNum}</span>
             </div>
           </div>
-          <span style={{ fontSize: 14, color: "rgba(255,215,0,0.5)", flexShrink: 0, transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</span>
+          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", flexShrink: 0, transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</span>
         </div>
         {isOpen && (
-          <div style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,215,0,0.12)" }}>
+          <div style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
             {game.r32id && getMatchupLabel(game) && (
               <div style={{ paddingTop: 14, fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>📋 {getMatchupLabel(game)}</div>
             )}
             {top4.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🔮 Most Likely Matchups</div>
+                <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🔮 Most Likely Matchups</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {top4.map(({ teamA, teamB, prob }, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px 12px" }}>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: i === 0 ? "#FFD700" : "#445", width: 18, flexShrink: 0 }}>#{i+1}</span>
+                      <span style={{ fontSize: 10, fontWeight: 900, color: i === 0 ? "#60a5fa" : "#445", width: 18, flexShrink: 0 }}>#{i+1}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 5, flex: 1, minWidth: 0 }}>
                         <Flag name={teamA} size={14} />
                         <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamA}</span>
@@ -2121,14 +2173,14 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
                         <Flag name={teamB} size={14} />
                         <span style={{ fontSize: 12, fontWeight: 700, color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{teamB}</span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: i === 0 ? "#FFD700" : "#556", flexShrink: 0 }}>{(prob * 100).toFixed(1)}%</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: i === 0 ? "#60a5fa" : "#556", flexShrink: 0 }}>{(prob * 100).toFixed(1)}%</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
             <div>
-              <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🎫 Get Tickets</div>
+              <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 800, textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>🎫 Get Tickets</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <a href={`https://www.stubhub.com/search?q=${cardQ}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "9px 18px", background: "#00d4aa", color: "#000", fontWeight: 800, fontSize: 13, borderRadius: 10, textDecoration: "none" }}>🎫 StubHub</a>
                 <a href={`https://www.vividseats.com/search?q=${cardQ}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "9px 18px", background: "rgba(168,85,247,0.15)", color: "#c084fc", fontWeight: 800, fontSize: 13, borderRadius: 10, textDecoration: "none", border: "1px solid rgba(168,85,247,0.4)" }}>🎟️ Vivid Seats</a>
@@ -2141,7 +2193,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
                   {cardTeams.map(team => (
                     <button key={team} onClick={() => { onSelectTeam(team); setOpenGame(null); }}
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 20, color: "#ddd", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,215,0,0.18)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.5)"; e.currentTarget.style.color = "#fff"; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "#ddd"; }}
                     ><Flag name={team} size={13} />{team}</button>
                   ))}
@@ -2169,14 +2221,14 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 14px 60px" }}>
 
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <h2 style={{ color: "#FFD700", fontSize: "1.3rem", fontWeight: 900, margin: "0 0 6px", letterSpacing: "0.04em", textTransform: "uppercase" }}>🎟️ Find Your Game</h2>
+        <h2 style={{ color: "#60a5fa", fontSize: "1.3rem", fontWeight: 900, margin: "0 0 6px", letterSpacing: "0.04em", textTransform: "uppercase" }}>🎟️ Find Your Game</h2>
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>Tap any game to see possible teams and get tickets.</p>
       </div>
 
       {cityFilter ? (
         <>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 16, background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: 12, padding: "10px 16px" }}>
-            <span style={{ fontSize: 13, color: "#FFD700", fontWeight: 700 }}>📍 {cityFilter} — all matches</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 12, padding: "10px 16px" }}>
+            <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>📍 {cityFilter} — all matches</span>
             <button onClick={() => { setCityFilter(null); setOpenGame(null); }} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "3px 10px", cursor: "pointer" }}>✕ clear</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8 }}>
@@ -2401,7 +2453,7 @@ export default function App() {
         const days = Math.ceil((kickoff - today) / (1000 * 60 * 60 * 24));
         if (days <= 0) return null;
         return (
-          <div style={{ background: "#000d1f", borderBottom: "1px solid rgba(255,215,0,0.15)", padding: "8px 20px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+          <div style={{ background: "#000d1f", borderBottom: "1px solid rgba(96,165,250,0.15)", padding: "8px 20px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <span style={{ fontSize: 13 }}>⚽</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)", letterSpacing: "0.06em" }}>
               <span style={{ color: "#FFD700", fontWeight: 900, fontSize: 14 }}>{days}</span> {days === 1 ? "day" : "days"} until kick-off
@@ -2479,7 +2531,7 @@ export default function App() {
           </div>
 
           {/* Main headline — animated */}
-          <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,2.8rem)", fontWeight: 900, color: "#FFD700", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase", textShadow: "0 2px 24px rgba(255,215,0,0.5)", lineHeight: 1.1, animation: "fadeSlideUp 0.7s ease both" }}>
+          <h1 style={{ fontSize: "clamp(1.6rem,5.5vw,2.8rem)", fontWeight: 900, color: "#60a5fa", margin: "0 0 8px", letterSpacing: "0.06em", textTransform: "uppercase", textShadow: "0 2px 24px rgba(96,165,250,0.4)", lineHeight: 1.1, animation: "fadeSlideUp 0.7s ease both" }}>
             Every Possible Path. One Decision.
           </h1>
           <p style={{ color: "rgba(255,255,255,0.82)", margin: "0 0 6px", fontSize: "clamp(0.95rem,2.2vw,1.1rem)", fontWeight: 400, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5, animation: "fadeSlideUp 0.7s ease 0.15s both" }}>
@@ -2596,7 +2648,7 @@ export default function App() {
                   padding: "9px 20px", borderRadius: 24,
                   border: active ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.1)",
                   background: active ? "#FFD700" : "rgba(255,255,255,0.03)",
-                  color: active ? "#000" : unlocked ? "#8fa8c0" : "rgba(255,255,255,0.2)",
+                  color: active ? "#fff" : unlocked ? "#8fa8c0" : "rgba(255,255,255,0.2)",
                   fontWeight: 800, fontSize: 13, cursor: unlocked ? "pointer" : "default",
                   textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s",
                   opacity: unlocked ? 1 : 0.5,
@@ -2628,13 +2680,13 @@ export default function App() {
             {phase === "group" && (
               <div>
                 {!mainTeam && (
-                  <div style={{ textAlign: "center", marginBottom: 24, padding: 20, background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 14 }}>
+                  <div style={{ textAlign: "center", marginBottom: 24, padding: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14 }}>
                     <div style={{ fontSize: 36, marginBottom: 8 }}>👆</div>
-                    <p style={{ color: "#FFD700", fontWeight: 700, fontSize: 15, margin: 0 }}>Select your team above to highlight their group and matches!</p>
+                    <p style={{ color: "#60a5fa", fontWeight: 700, fontSize: 15, margin: 0 }}>Select your team above to highlight their group and matches!</p>
                   </div>
                 )}
                 <div style={{ textAlign: "center", marginBottom: 26 }}>
-                  <h2 style={{ color: "#FFD700", fontSize: "1.25rem", margin: "0 0 6px" }}>Set Group Stage Standings</h2>
+                  <h2 style={{ color: "#60a5fa", fontSize: "1.25rem", margin: "0 0 6px" }}>Set Group Stage Standings</h2>
                   <p style={{ color: "#556", fontSize: 13, margin: 0 }}>Use ↑↓ arrows to reorder teams, then confirm each group.</p>
                 </div>
                 {mainTeam && teamGroup && (
@@ -2653,8 +2705,8 @@ export default function App() {
                   <div style={{ fontSize: 20, color: "rgba(147,197,253,0.45)", lineHeight: 1, marginBottom: 8, display: "block" }}>↓</div>
                   <button onClick={handleConfirmAllGroups}
                     className="btn-glow"
-                    style={{ padding: "16px 36px", background: "rgba(255,215,0,0.08)", border: "1.5px solid rgba(255,215,0,0.4)", borderRadius: 30, color: "rgba(255,215,0,0.85)", fontWeight: 600, fontSize: 16, cursor: "pointer", letterSpacing: "0.03em", transition: "background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s" }}
-                    onMouseEnter={e => { e.target.style.background = "rgba(255,215,0,0.18)"; e.target.style.borderColor = "#FFD700"; e.target.style.color = "#FFD700"; e.target.style.boxShadow = "0 0 0 4px rgba(255,215,0,0.2), 0 0 20px rgba(255,215,0,0.3)"; e.target.style.transform = "translateY(-2px)"; }}
+                    style={{ padding: "16px 36px", background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.25)", borderRadius: 30, color: "rgba(255,215,0,0.85)", fontWeight: 600, fontSize: 16, cursor: "pointer", letterSpacing: "0.03em", transition: "background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s" }}
+                    onMouseEnter={e => { e.target.style.background = "rgba(255,255,255,0.14)"; e.target.style.borderColor = "rgba(255,255,255,0.7)"; e.target.style.color = "#FFD700"; e.target.style.boxShadow = "0 0 0 4px rgba(255,215,0,0.2), 0 0 20px rgba(255,215,0,0.3)"; e.target.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { e.target.style.background = "rgba(255,215,0,0.08)"; e.target.style.borderColor = "rgba(255,215,0,0.4)"; e.target.style.color = "rgba(255,215,0,0.85)"; e.target.style.boxShadow = "none"; e.target.style.transform = "translateY(0)"; }}
                   >Auto-Confirm All Group Stage</button>
                 </div>
