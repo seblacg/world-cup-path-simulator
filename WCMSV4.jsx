@@ -974,7 +974,27 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
     return "Other";
   };
   const mw  = (id) => knockoutWinners[id] || null;
-  const sw  = (id, team) => { setKnockoutWinners((p) => ({ ...p, [id]: team })); if (id === 104) onChampion(team); };
+  const sw  = (id, team) => {
+    setKnockoutWinners((p) => {
+      const next = { ...p, [id]: team };
+      if (id === 104) onChampion(team);
+      const roundDefs = [
+        { matches: R32, nextRef: r16Ref   },
+        { matches: R16, nextRef: qfRef    },
+        { matches: QF,  nextRef: sfRef    },
+        { matches: SF,  nextRef: finalRef },
+      ];
+      for (const rd of roundDefs) {
+        const ids = rd.matches.map(m => m.id);
+        if (ids.includes(id)) {
+          if (ids.every(mid => next[mid]))
+            setTimeout(() => rd.nextRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+          break;
+        }
+      }
+      return next;
+    });
+  };
 
   const inv = (name) => !!(name && mainTeam && name === mainTeam);
   const matchHasMain = (t1, t2) => inv(t1) || inv(t2);
@@ -989,32 +1009,32 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
   const autoBtnHover = (e) => { e.target.style.background = "rgba(255,255,255,0.14)"; e.target.style.borderColor = "rgba(255,255,255,0.7)"; e.target.style.color = "#fff"; };
   const autoBtnLeave = (e) => { e.target.style.background = "rgba(255,255,255,0.06)"; e.target.style.borderColor = "rgba(255,255,255,0.25)"; e.target.style.color = "rgba(255,255,255,0.7)"; };
 
-  const scrollToNextAutoBtn = (ref) => setTimeout(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+  const scrollToNextAutoBtn = (ref) => setTimeout(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
 
   // Auto-confirm helpers — confirm all unset matches, then scroll to next round's button
   const autoR32 = () => {
     const updates = {};
     R32.forEach((m) => { const t1 = rr(m.t1); if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
-    scrollToNextAutoBtn(autoR16BtnRef);
+    scrollToNextAutoBtn(r16Ref);
   };
   const autoR16 = () => {
     const updates = {};
     R16.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
-    scrollToNextAutoBtn(autoQFBtnRef);
+    scrollToNextAutoBtn(qfRef);
   };
   const autoQF = () => {
     const updates = {};
     QF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
-    scrollToNextAutoBtn(autoSFBtnRef);
+    scrollToNextAutoBtn(sfRef);
   };
   const autoSF = () => {
     const updates = {};
     SF.forEach((m) => { const t1 = knockoutWinners[m.m1] || "Other"; if (!knockoutWinners[m.id]) updates[m.id] = t1; });
     setKnockoutWinners((p) => ({ ...p, ...updates }));
-    scrollToNextAutoBtn(autoFinalBtnRef);
+    scrollToNextAutoBtn(finalRef);
   };
   const autoFinal = () => {
     const sf1w = knockoutWinners[101] || "Other";
@@ -1140,10 +1160,10 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       {/* ── STICKY PROGRESS BAR ── */}
       {(() => {
         const roundDefs = [
-          { key: "r32", label: "Round of 32",   matches: R32, nextRef: autoR16BtnRef,   nextLabel: "Round of 16",   color: "#FFD700" },
-          { key: "r16", label: "Round of 16",   matches: R16, nextRef: autoQFBtnRef,    nextLabel: "Quarterfinals", color: "#378ADD" },
-          { key: "qf",  label: "Quarterfinals", matches: QF,  nextRef: autoSFBtnRef,    nextLabel: "Semifinals",    color: "#1D9E75" },
-          { key: "sf",  label: "Semifinals",    matches: SF,  nextRef: autoFinalBtnRef, nextLabel: "The Final",     color: "#EF9F27" },
+          { key: "r32", label: "Round of 32",   matches: R32, nextRef: r16Ref,   nextLabel: "Round of 16",   color: "#FFD700" },
+          { key: "r16", label: "Round of 16",   matches: R16, nextRef: qfRef,    nextLabel: "Quarterfinals", color: "#378ADD" },
+          { key: "qf",  label: "Quarterfinals", matches: QF,  nextRef: sfRef,    nextLabel: "Semifinals",    color: "#1D9E75" },
+          { key: "sf",  label: "Semifinals",    matches: SF,  nextRef: finalRef, nextLabel: "The Final",     color: "#EF9F27" },
           { key: "final", label: "The Final",   matches: [{id:104}], nextRef: null,     nextLabel: null,            color: "#E24B4A" },
         ];
         const cur = roundDefs.find(r => r.matches.some(m => !knockoutWinners[m.id])) || roundDefs[roundDefs.length - 1];
@@ -1161,11 +1181,12 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
                   <span style={{ fontSize: 10, fontWeight: 700, color: complete ? c : "rgba(255,255,255,0.35)", transition: "color 0.4s" }}>{confirmed} / {total} confirmed</span>
                 </div>
                 <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, height: 5, overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 10, width: `${pct}%`, background: complete ? c : "rgba(255,255,255,0.3)", transition: "width 0.3s ease, background 0.4s" }} />
+                  <div style={{ height: "100%", borderRadius: 10, width: `${pct}%`, background: c, opacity: complete ? 1 : 0.45, transition: "width 0.3s ease, opacity 0.4s" }} />
                 </div>
+                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", margin: "5px 0 0", fontStyle: "italic", letterSpacing: "0.02em" }}>Tap a match to pick a winner · or use Auto-Confirm ↓</p>
               </div>
               {complete && cur.nextRef && (
-                <button onClick={() => setTimeout(() => cur.nextRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50)}
+                <button onClick={() => setTimeout(() => cur.nextRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)}
                   style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 7, border: `1px solid ${c}99`, background: `${c}18`, color: c, fontWeight: 800, fontSize: 11, cursor: "pointer", letterSpacing: "0.05em", textTransform: "uppercase", animation: "pulse-unlock 1.6s ease-in-out infinite" }}
                   onMouseEnter={e => { e.currentTarget.style.background = c + "30"; e.currentTarget.style.borderColor = c; }}
                   onMouseLeave={e => { e.currentTarget.style.background = c + "18"; e.currentTarget.style.borderColor = c + "99"; }}
@@ -1194,10 +1215,11 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
         </div>
       </div>
 
+      <div ref={r16Ref} style={{ scrollMarginTop: 56 }}>
       <RoundDivider label="Round of 16" teamsLeft={16} color="#378ADD" />
 
       {/* ── ROUND OF 16 ── */}
-      <div ref={r16Ref} style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
           <button ref={autoR16BtnRef} style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoR16}>Auto-Confirm Round</button>
         </div>
@@ -1205,11 +1227,13 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           {R16.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Round of 16`} scale="r16" />; })}
         </div>
       </div>
+      </div>
 
+      <div ref={qfRef} style={{ scrollMarginTop: 56 }}>
       <RoundDivider label="Quarterfinals" teamsLeft={8} color="#1D9E75" />
 
       {/* ── QUARTERFINALS ── */}
-      <div ref={qfRef} style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
           <button ref={autoQFBtnRef} style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoQF}>Auto-Confirm Round</button>
         </div>
@@ -1217,17 +1241,20 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
           {QF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Quarterfinal`} scale="qf" />; })}
         </div>
       </div>
+      </div>
 
+      <div ref={sfRef} style={{ scrollMarginTop: 56 }}>
       <RoundDivider label="Semifinals" teamsLeft={4} color="#EF9F27" />
 
       {/* ── SEMIFINALS ── */}
-      <div ref={sfRef} style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
           <button ref={autoSFBtnRef} style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoSF}>Auto-Confirm Round</button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(340px,1fr))", gap: 12 }}>
           {SF.map((m) => { const t1 = mw(m.m1)||"Other", t2 = mw(m.m2)||"Other"; return <MatchCard key={m.id} match={m} t1={t1} t2={t2} winner={mw(m.id)} onPick={(w) => sw(m.id, w)} highlight={matchHasMain(t1, t2)} mainTeam={mainTeam} label={`Match ${m.id} · Semifinal`} scale="sf" />; })}
         </div>
+      </div>
       </div>
 
       <RoundDivider label="The Final" teamsLeft={2} color="#E24B4A" />
@@ -1240,7 +1267,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
         const sf1loser = sf1w ? (sf1t1 === sf1w ? sf1t2 : sf1t1) : "Other";
         const sf2loser = sf2w ? (sf2t1 === sf2w ? sf2t2 : sf2t1) : "Other";
         return (
-          <div ref={finalRef} style={{ marginBottom: 28 }}>
+          <div ref={finalRef} style={{ marginBottom: 28, scrollMarginTop: 60 }}>
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
               <button ref={autoFinalBtnRef} style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoFinal}>Auto-Confirm Round</button>
             </div>
@@ -2256,7 +2283,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
             <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>📍 {cityFilter} — all matches</span>
             <button onClick={() => { setCityFilter(null); setOpenGame(null); }} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "3px 10px", cursor: "pointer" }}>✕ clear</button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
             {cityGames.map(game => <GameCard key={game.id} game={game} />)}
           </div>
         </>
@@ -2296,7 +2323,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
                   <div style={{ flex: 1, height: "2px", background: color + "66" }} />
                 </div>
                 {/* Game cards */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8, marginBottom: 28 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8, marginBottom: 28 }}>
                   {games.map(game => <GameCard key={game.id} game={game} />)}
                 </div>
               </div>
@@ -2716,7 +2743,7 @@ export default function App() {
                 )}
                 <div style={{ textAlign: "center", marginBottom: 26 }}>
                   <h2 style={{ color: "#60a5fa", fontSize: "1.25rem", margin: "0 0 6px" }}>Set Group Stage Standings</h2>
-                  <p style={{ color: "#556", fontSize: 13, margin: 0 }}>Use ↑↓ arrows to reorder teams, then confirm each group.</p>
+                  <p style={{ color: "rgba(255,255,255,0.28)", fontSize: 11, margin: 0, fontStyle: "italic", letterSpacing: "0.02em" }}>Tap a team to set standings · or use Confirm Group ↓</p>
                 </div>
                 {mainTeam && teamGroup && (
                   <div style={{ marginBottom: 18 }}>
