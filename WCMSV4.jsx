@@ -751,63 +751,51 @@ function BracketView({ allGroupStandings, knockoutWinners, setKnockoutWinners, m
     const hasWinner = !!w;
     const isMain = t1main || t2main || w === mainTeam;
 
-    const cardW = compact ? 58 : 72;
-    const fontSize = compact ? 8 : 9;
-    const flagSize = compact ? 9 : 11;
+    const cardW = compact ? 72 : 90;
+    const fontSize = compact ? 7 : 8;
+    const flagSize = compact ? 12 : 16;
     const rowPad = compact ? "3px 4px" : "4px 6px";
 
-    const TeamRow = ({ team, won, lost, isMainTeam }) => {
-      const color = won
-        ? "#4ade80"
-        : lost
-          ? "#33404a"
-          : isMainTeam ? "#86efac" : "#bcc8d4";
-
-      const bg = won
-        ? (isMainTeam ? "rgba(74,222,128,0.18)" : "rgba(74,222,128,0.12)")
-        : "transparent";
-
-      return (
-        <button
-          onClick={() => !isPlaceholder(team) && sw(match.id, team)}
-          style={{
-            display: "flex", alignItems: "center", gap: 4,
-            width: "100%", padding: rowPad,
-            background: bg, border: "none", borderRadius: 4,
-            cursor: isPlaceholder(team) ? "default" : "pointer",
-            transition: "all 0.15s", textAlign: "left",
-            opacity: lost ? 0.38 : 1,
-          }}
-          onMouseEnter={e => { if (!isPlaceholder(team) && !won) e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
-          onMouseLeave={e => { if (!won) e.currentTarget.style.background = bg; }}
-        >
-          {!isPlaceholder(team) && <Flag name={team} size={flagSize} />}
-          <span style={{
-            fontSize, fontWeight: won ? 800 : 600, color,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            maxWidth: compact ? 32 : 42, fontFamily: "monospace",
-          }}>{isPlaceholder(team) ? "?" : abbr(team)}</span>
-          {won && <span style={{ marginLeft: "auto", fontSize: 7, color: "#4ade80" }}>✓</span>}
-        </button>
-      );
-    };
+    const TeamRow = ({ team, won, lost }) => (
+      <button
+        onClick={() => !isPlaceholder(team) && sw(match.id, team)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5,
+          width: "100%", padding: rowPad,
+          background: "transparent", border: "none", borderRadius: 4,
+          cursor: isPlaceholder(team) ? "default" : "pointer",
+          transition: "all 0.15s", textAlign: "left",
+          opacity: lost ? 0.3 : 1,
+        }}
+        onMouseEnter={e => { if (!isPlaceholder(team)) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+      >
+        {!isPlaceholder(team)
+          ? <Flag name={team} size={flagSize} />
+          : <span style={{ width: flagSize * 1.5, height: flagSize, borderRadius: 3, background: "rgba(255,255,255,0.06)", display: "inline-block", flexShrink: 0 }} />
+        }
+        <span style={{
+          fontSize, fontWeight: won ? 700 : 500,
+          color: won ? "#fff" : lost ? "#3a4a5a" : "#8fa8c0",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          maxWidth: compact ? 28 : 38, fontFamily: "monospace", letterSpacing: "0.04em",
+        }}>{isPlaceholder(team) ? "?" : abbr(team)}</span>
+      </button>
+    );
 
     return (
       <div style={{
-        background: isMain ? "rgba(74,222,128,0.05)" : "rgba(255,255,255,0.04)",
+        background: "rgba(255,255,255,0.04)",
         border: isMain
-          ? (hasWinner ? "1px solid rgba(74,222,128,0.4)" : "1px solid rgba(74,222,128,0.25)")
-          : "1px solid rgba(255,255,255,0.09)",
+          ? "1px solid rgba(100,160,255,0.35)"
+          : "1px solid rgba(255,255,255,0.08)",
         borderRadius: 6, overflow: "hidden",
         width: cardW, minWidth: cardW,
         transition: "border-color 0.15s",
       }}>
-        <div style={{ fontSize: compact ? 7 : 8, color: "#445", padding: compact ? "2px 4px" : "2px 6px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 600, letterSpacing: "0.03em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {match.city}
-        </div>
-        <TeamRow team={match.t1} won={t1won} lost={hasWinner && !t1won} isMainTeam={t1main} />
-        <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: compact ? "0 6px" : "0 8px" }} />
-        <TeamRow team={match.t2} won={t2won} lost={hasWinner && !t2won} isMainTeam={t2main} />
+        <TeamRow team={match.t1} won={t1won} lost={hasWinner && !t1won} />
+        <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+        <TeamRow team={match.t2} won={t2won} lost={hasWinner && !t2won} />
       </div>
     );
   };
