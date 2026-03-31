@@ -1134,21 +1134,57 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       )}
 
       {/* PATH VIEW — all rounds on one continuous page */}
-      {viewMode === "path" && <div>
+      {viewMode === "path" && <div style={{ paddingBottom: 80 }}>
 
-      {/* Sticky round nav — scrolls to section */}
-      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 28, position: "sticky", top: 0, zIndex: 100, background: "transparent", padding: "10px 0 10px" }}>
-        {TABS.map((r) => (
-          <button key={r.id} onClick={() => goToRound(r.id)} style={{ padding: "6px 16px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", color: "#8fa8c0", cursor: "pointer", fontSize: 12, fontWeight: 700, transition: "all 0.15s" }}
-            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.4)"; e.currentTarget.style.color = "#FFD700"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#8fa8c0"; }}
-          >{r.label}</button>
-        ))}
-      </div>
+
+      {/* ── STICKY PROGRESS BAR ── */}
+      {(() => {
+        const roundDefs = [
+          { key: "r32", label: "Round of 32",   matches: R32, nextRef: autoR16BtnRef,   nextLabel: "Round of 16",   color: "#FFD700" },
+          { key: "r16", label: "Round of 16",   matches: R16, nextRef: autoQFBtnRef,    nextLabel: "Quarterfinals", color: "#378ADD" },
+          { key: "qf",  label: "Quarterfinals", matches: QF,  nextRef: autoSFBtnRef,    nextLabel: "Semifinals",    color: "#1D9E75" },
+          { key: "sf",  label: "Semifinals",    matches: SF,  nextRef: autoFinalBtnRef, nextLabel: "The Final",     color: "#EF9F27" },
+          { key: "final", label: "The Final",   matches: [{id:104}], nextRef: null,     nextLabel: null,            color: "#E24B4A" },
+        ];
+        const cur = roundDefs.find(r => r.matches.some(m => !knockoutWinners[m.id])) || roundDefs[roundDefs.length - 1];
+        const confirmed = cur.matches.filter(m => knockoutWinners[m.id]).length;
+        const total = cur.matches.length;
+        const pct = Math.round(confirmed / total * 100);
+        const complete = confirmed === total;
+        const c = cur.color;
+        return (
+          <div style={{ position: "sticky", top: 0, zIndex: 99, background: "rgba(7,11,18,0.96)", backdropFilter: "blur(10px)", padding: "8px 0 10px", marginBottom: 16, borderBottom: `1px solid ${complete ? c + "50" : "rgba(255,255,255,0.06)"}`, transition: "border-color 0.4s" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: complete ? c : "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", transition: "color 0.4s" }}>{cur.label}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: complete ? c : "rgba(255,255,255,0.35)", transition: "color 0.4s" }}>{confirmed} / {total} confirmed</span>
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, height: 5, overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 10, width: `${pct}%`, background: complete ? c : "rgba(255,255,255,0.3)", transition: "width 0.3s ease, background 0.4s" }} />
+                </div>
+              </div>
+              {complete && cur.nextRef && (
+                <button onClick={() => setTimeout(() => cur.nextRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50)}
+                  style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 7, border: `1px solid ${c}99`, background: `${c}18`, color: c, fontWeight: 800, fontSize: 11, cursor: "pointer", letterSpacing: "0.05em", textTransform: "uppercase", animation: "pulse-unlock 1.6s ease-in-out infinite" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = c + "30"; e.currentTarget.style.borderColor = c; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = c + "18"; e.currentTarget.style.borderColor = c + "99"; }}
+                >{cur.nextLabel} →</button>
+              )}
+              {complete && !cur.nextRef && (
+                <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 800, color: "#4ade80" }}>Complete!</span>
+              )}
+              {!complete && (
+                <div style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.15)", fontWeight: 700, fontSize: 11, cursor: "not-allowed", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {cur.nextLabel || "Complete"} →
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       <RoundDivider label="Round of 32" teamsLeft={32} color="#FFD700" />
-
-      {/* ── ROUND OF 32 ── */}
       <div ref={r32Ref} style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
           <button ref={autoR32BtnRef} style={autoBtn} onMouseEnter={autoBtnHover} onMouseLeave={autoBtnLeave} onClick={autoR32}>Auto-Confirm Round</button>
@@ -1216,6 +1252,7 @@ function KnockoutPhase({ allGroupStandings, knockoutWinners, setKnockoutWinners,
       })()}
 
       </div>}
+
     </div>
   );
 }
@@ -2389,6 +2426,10 @@ export default function App() {
         @keyframes bounceDown {
           0%, 100% { transform: translateY(0); opacity: 0.5; }
           50%       { transform: translateY(6px); opacity: 0.9; }
+        }
+        @keyframes pulse-unlock {
+          0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+          50%     { box-shadow: 0 0 0 4px rgba(255,255,255,0.08); }
         }
         @keyframes glow-border {
           0%,100% { border-color: rgba(255,215,0,0.3); box-shadow: none; transform: translateY(0); }
