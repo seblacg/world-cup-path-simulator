@@ -2190,18 +2190,18 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
         onMouseLeave={e => { if (!isOpen) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}}
       >
         <div onClick={() => setOpenGame(isOpen ? null : game)}
-          style={{ padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s" }}
+          style={{ padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s", minHeight: 52 }}
           onMouseEnter={e => { if (!isOpen) { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; } }}
           onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#e0e0e0" }}>{game.city}</div>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" }}>· {game.date}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#e0e0e0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{game.city}</div>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap", flexShrink: 0 }}>· {game.date}</span>
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 1, display: "flex", gap: 8 }}>
-              <span>{game.stadium}</span>
-              <span style={{ color: "rgba(255,255,255,0.18)" }}>· Match {game.r32id || game.matchNum}</span>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 1, display: "flex", gap: 6, overflow: "hidden" }}>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{game.stadium}</span>
+              <span style={{ color: "rgba(255,255,255,0.18)", whiteSpace: "nowrap", flexShrink: 0 }}>· M{game.r32id || game.matchNum}</span>
             </div>
           </div>
           <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", flexShrink: 0, transition: "transform 0.2s", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</span>
