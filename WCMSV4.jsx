@@ -2179,7 +2179,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
             <span style={{ fontSize: 13, color: "#FFD700", fontWeight: 700 }}>📍 {cityFilter} — all matches</span>
             <button onClick={() => { setCityFilter(null); setOpenGame(null); }} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "3px 10px", cursor: "pointer" }}>✕ clear</button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8 }}>
             {cityGames.map(game => <GameCard key={game.id} game={game} />)}
           </div>
         </>
@@ -2219,7 +2219,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
                   <div style={{ flex: 1, height: "2px", background: color + "66" }} />
                 </div>
                 {/* Game cards */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 28 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8, marginBottom: 28 }}>
                   {games.map(game => <GameCard key={game.id} game={game} />)}
                 </div>
               </div>
@@ -2346,6 +2346,10 @@ export default function App() {
           from { opacity: 0; }
           to   { opacity: 1; }
         }
+        @keyframes bounceDown {
+          0%, 100% { transform: translateY(0); opacity: 0.5; }
+          50%       { transform: translateY(6px); opacity: 0.9; }
+        }
         @keyframes glow-border {
           0%,100% { border-color: rgba(255,215,0,0.3); box-shadow: none; transform: translateY(0); }
           50%     { border-color: #FFD700; box-shadow: 0 0 0 5px rgba(255,215,0,0.28), 0 0 22px rgba(255,215,0,0.35); transform: translateY(-3px); }
@@ -2408,7 +2412,7 @@ export default function App() {
       })()}
 
       {/* ── HERO ── */}
-      <div style={{ position: "relative", background: "linear-gradient(180deg,#00277a 0%,#001650 55%,#000a1e 100%)", padding: "36px 20px 56px", textAlign: "center", marginBottom: 6, overflow: "hidden" }}>
+      <div style={{ position: "relative", background: "linear-gradient(180deg,#00277a 0%,#001650 55%,#000a1e 100%)", padding: "36px 20px 28px", textAlign: "center", marginBottom: 6, overflow: "hidden" }}>
         {/* Fade to transparent at bottom */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to bottom, transparent, #070b12)", pointerEvents: "none", zIndex: 1 }} />
 
@@ -2484,7 +2488,7 @@ export default function App() {
 
 
           {/* ── SPLIT ENTRY CARDS ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 620, margin: "0 auto 20px", animation: "fadeSlideUp 0.7s ease 0.28s both" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, maxWidth: 620, margin: "0 auto 10px", animation: "fadeSlideUp 0.7s ease 0.28s both" }}>
 
             {/* Card: Simulate a Team */}
             <button onClick={() => { setHeroMode("team"); setPhase("group"); }}
@@ -2515,18 +2519,34 @@ export default function App() {
 
           {/* ── TEAM PICKER — inside hero, below mode cards ── */}
           {heroMode === "team" && (
-            <div style={{ maxWidth: 620, margin: "4px auto 0", animation: "fadeSlideUp 0.4s ease both" }}>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400, fontSize: 12, letterSpacing: "0.03em", textAlign: "center", marginBottom: 10 }}>⚽ pick a team to simulate</p>
-              <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 7 }}>
+            <div style={{ maxWidth: 660, margin: "0 auto 0", animation: "fadeSlideUp 0.4s ease both" }}>
+              {!mainTeam && (
+                <div style={{ textAlign: "center", marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.7)", letterSpacing: "0.02em", marginBottom: 4 }}>
+                    Start by choosing your team
+                  </div>
+                  <div style={{
+                    display: "inline-block",
+                    fontSize: 20, color: "rgba(255,255,255,0.45)",
+                    animation: "bounceDown 1.2s ease-in-out infinite"
+                  }}>↓</div>
+                </div>
+              )}
+              {mainTeam && (
+                <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400, fontSize: 12, letterSpacing: "0.03em", textAlign: "center", marginBottom: 8 }}>⚽ pick a team to simulate</p>
+              )}
+              <div className="chip-grid" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
                 {["USA","Mexico","Canada","Portugal","Spain","France","England","Argentina","Colombia","Brazil","Germany","Japan","Netherlands","Korea Republic","Morocco","Norway","Croatia"].map(team => {
                   const selected = mainTeam === team;
                   return (
                     <button key={team} onClick={() => handleTeamChange(team)}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: selected ? "rgba(255,215,0,0.2)" : "rgba(255,255,255,0.07)", border: selected ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.18)", borderRadius: 24, color: selected ? "#FFD700" : "#ddd", fontSize: 13, fontWeight: selected ? 800 : 600, cursor: "pointer", transition: "all 0.15s" }}
-                      onMouseEnter={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,215,0,0.12)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#FFD700"; }}}
-                      onMouseLeave={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#ddd"; }}}
+                      style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", background: selected ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.09)", border: selected ? "2px solid rgba(255,255,255,0.7)" : "1px solid rgba(255,255,255,0.18)", borderBottom: selected ? "3px solid rgba(255,255,255,0.9)" : "3px solid rgba(255,255,255,0.35)", borderRadius: 8, color: selected ? "#fff" : "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: selected ? 800 : 600, cursor: "pointer", transition: "all 0.1s" }}
+                      onMouseEnter={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)"; e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.7)"; e.currentTarget.style.color = "#fff"; }}}
+                      onMouseLeave={e => { if (!selected) { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.35)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; }}}
+                      onMouseDown={e => { e.currentTarget.style.transform = "translateY(2px)"; e.currentTarget.style.borderBottomWidth = "1px"; }}
+                      onMouseUp={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderBottomWidth = "3px"; }}
                     >
-                      <Flag name={team} size={15} />{team}{selected && <span style={{ marginLeft: 2, fontSize: 11 }}>✓</span>}
+                      <Flag name={team} size={17} />{team}{selected && <span style={{ marginLeft: 2, fontSize: 12 }}>✓</span>}
                     </button>
                   );
                 })}
@@ -2563,16 +2583,33 @@ export default function App() {
         >↺ reset</button>
       )}
 
-      {/* ── TABS (team mode only, only shown after team selected) ── */}
-      {heroMode === "team" && mainTeam && (
+      {/* ── TABS (team mode only) ── */}
+      {heroMode === "team" && (
         <div className="tab-bar" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, padding: "16px 16px 0", flexWrap: "wrap", animation: "fadeIn 0.3s ease both" }}>
-          {TABS.filter(t => t.id !== "venue").map((t) => (
-            <button key={t.id} onClick={() => setPhase(t.id)}
-              style={{ padding: "9px 20px", borderRadius: 24, border: phase === t.id ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.18)", background: phase === t.id ? "#FFD700" : "rgba(255,255,255,0.04)", color: phase === t.id ? "#000" : "#8fa8c0", fontWeight: 800, fontSize: 13, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s" }}
-              onMouseEnter={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#fff"; }}}
-              onMouseLeave={e => { if (phase !== t.id) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#8fa8c0"; }}}
-            >{t.label}</button>
-          ))}
+          {TABS.filter(t => t.id !== "venue").map((t) => {
+            const active = mainTeam && phase === t.id;
+            const unlocked = !!mainTeam;
+            return (
+              <button key={t.id}
+                onClick={() => unlocked && setPhase(t.id)}
+                style={{
+                  padding: "9px 20px", borderRadius: 24,
+                  border: active ? "2px solid #FFD700" : "2px solid rgba(255,255,255,0.1)",
+                  background: active ? "#FFD700" : "rgba(255,255,255,0.03)",
+                  color: active ? "#000" : unlocked ? "#8fa8c0" : "rgba(255,255,255,0.2)",
+                  fontWeight: 800, fontSize: 13, cursor: unlocked ? "pointer" : "default",
+                  textTransform: "uppercase", letterSpacing: "0.06em", transition: "all 0.2s",
+                  opacity: unlocked ? 1 : 0.5,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+                onMouseEnter={e => { if (unlocked && !active) { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,215,0,0.5)"; e.currentTarget.style.color = "#fff"; }}}
+                onMouseLeave={e => { if (unlocked && !active) { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#8fa8c0"; }}}
+              >
+                {!unlocked && <span style={{ fontSize: 11 }}>🔒</span>}
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
