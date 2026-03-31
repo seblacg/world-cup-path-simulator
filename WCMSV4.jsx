@@ -2054,6 +2054,75 @@ function WorldCupMap({ onCityClick }) {
   );
 }
 
+
+// ─── GROUP STAGE VENUE DATA ────────────────────────────────────────────────────
+const GROUP_STAGE_VENUES = [
+  { id: "gs-1",  round: "Group Stage", matchNum: 1,  date: "Thu Jun 11", time: "8pm ET",  city: "Los Angeles, CA",        stadium: "SoFi Stadium",              matchup: "USA vs TBD", teams: ["Mexico", "Korea Republic"] },
+  { id: "gs-2",  round: "Group Stage", matchNum: 2,  date: "Fri Jun 12", time: "12pm ET", city: "Toronto, Canada",         stadium: "BMO Field",                 matchup: "Canada opening match", teams: ["Canada", "Switzerland"] },
+  { id: "gs-3",  round: "Group Stage", matchNum: 3,  date: "Fri Jun 12", time: "3pm ET",  city: "Mexico City, Mexico",     stadium: "Estadio Azteca",            matchup: "Mexico opening match", teams: ["Brazil", "Morocco"] },
+  { id: "gs-4",  round: "Group Stage", matchNum: 4,  date: "Fri Jun 12", time: "6pm ET",  city: "New York/NJ",             stadium: "MetLife Stadium",           matchup: "Group A", teams: ["USA", "Paraguay"] },
+  { id: "gs-5",  round: "Group Stage", matchNum: 5,  date: "Fri Jun 12", time: "9pm ET",  city: "Los Angeles, CA",         stadium: "Rose Bowl",                 matchup: "Group B", teams: ["Germany", "Ecuador"] },
+  { id: "gs-6",  round: "Group Stage", matchNum: 6,  date: "Sat Jun 13", time: "12pm ET", city: "Dallas, TX",              stadium: "AT&T Stadium",              matchup: "Group C", teams: ["Netherlands", "Japan"] },
+  { id: "gs-7",  round: "Group Stage", matchNum: 7,  date: "Sat Jun 13", time: "3pm ET",  city: "San Francisco, CA",       stadium: "Levi's Stadium",            matchup: "Group D", teams: ["Belgium", "Egypt"] },
+  { id: "gs-8",  round: "Group Stage", matchNum: 8,  date: "Sat Jun 13", time: "6pm ET",  city: "Boston, MA",              stadium: "Gillette Stadium",          matchup: "Group E", teams: ["Spain", "Uruguay"] },
+  { id: "gs-9",  round: "Group Stage", matchNum: 9,  date: "Sat Jun 13", time: "9pm ET",  city: "Miami, FL",               stadium: "Hard Rock Stadium",         matchup: "Group F", teams: ["France", "Norway"] },
+  { id: "gs-10", round: "Group Stage", matchNum: 10, date: "Sun Jun 14", time: "12pm ET", city: "Seattle, WA",             stadium: "Lumen Field",               matchup: "Group G", teams: ["Argentina", "Algeria"] },
+  { id: "gs-11", round: "Group Stage", matchNum: 11, date: "Sun Jun 14", time: "3pm ET",  city: "Kansas City, MO",         stadium: "Arrowhead Stadium",         matchup: "Group H", teams: ["Portugal", "Colombia"] },
+  { id: "gs-12", round: "Group Stage", matchNum: 12, date: "Sun Jun 14", time: "6pm ET",  city: "Atlanta, GA",             stadium: "Mercedes-Benz Stadium",     matchup: "Group I", teams: ["England", "Croatia"] },
+  { id: "gs-13", round: "Group Stage", matchNum: 13, date: "Sun Jun 14", time: "9pm ET",  city: "Philadelphia, PA",        stadium: "Lincoln Financial Field",   matchup: "Group J", teams: ["South Africa", "Czechia/Denmark/N.Macedonia/Ireland"] },
+  { id: "gs-14", round: "Group Stage", matchNum: 14, date: "Mon Jun 15", time: "12pm ET", city: "Houston, TX",             stadium: "NRG Stadium",               matchup: "Group K", teams: ["Qatar", "Bosnia/Italy/N.Ireland/Wales"] },
+  { id: "gs-15", round: "Group Stage", matchNum: 15, date: "Mon Jun 15", time: "3pm ET",  city: "Vancouver, Canada",       stadium: "BC Place",                  matchup: "Group L", teams: ["Haiti", "Scotland"] },
+  { id: "gs-16", round: "Group Stage", matchNum: 16, date: "Mon Jun 15", time: "6pm ET",  city: "Guadalajara, Mexico",     stadium: "Estadio Akron",             matchup: "Group A", teams: ["Australia", "Kosovo/Romania/Slovakia/Türkiye"] },
+  { id: "gs-17", round: "Group Stage", matchNum: 17, date: "Mon Jun 15", time: "9pm ET",  city: "Monterrey, Mexico",       stadium: "Estadio BBVA",              matchup: "Group B", teams: ["Côte d'Ivoire", "Curaçao"] },
+  { id: "gs-18", round: "Group Stage", matchNum: 18, date: "Tue Jun 16", time: "12pm ET", city: "New York/NJ",             stadium: "MetLife Stadium",           matchup: "Group C", teams: ["Tunisia", "Albania/Poland/Sweden/Ukraine"] },
+  { id: "gs-19", round: "Group Stage", matchNum: 19, date: "Tue Jun 16", time: "3pm ET",  city: "Los Angeles, CA",         stadium: "SoFi Stadium",              matchup: "Group D", teams: ["IR Iran", "New Zealand"] },
+  { id: "gs-20", round: "Group Stage", matchNum: 20, date: "Tue Jun 16", time: "6pm ET",  city: "Dallas, TX",              stadium: "AT&T Stadium",              matchup: "Group E", teams: ["Saudi Arabia", "Cabo Verde"] },
+  { id: "gs-21", round: "Group Stage", matchNum: 21, date: "Tue Jun 16", time: "9pm ET",  city: "San Francisco, CA",       stadium: "Levi's Stadium",            matchup: "Group F", teams: ["Senegal", "Bolivia/Iraq/Suriname"] },
+  { id: "gs-22", round: "Group Stage", matchNum: 22, date: "Wed Jun 17", time: "12pm ET", city: "Boston, MA",              stadium: "Gillette Stadium",          matchup: "Group G", teams: ["Austria", "Jordan"] },
+  { id: "gs-23", round: "Group Stage", matchNum: 23, date: "Wed Jun 17", time: "3pm ET",  city: "Miami, FL",               stadium: "Hard Rock Stadium",         matchup: "Group H", teams: ["Uzbekistan", "Congo DR"] },
+  { id: "gs-24", round: "Group Stage", matchNum: 24, date: "Wed Jun 17", time: "6pm ET",  city: "Seattle, WA",             stadium: "Lumen Field",               matchup: "Group I", teams: ["Ghana", "Panama"] },
+  { id: "gs-25", round: "Group Stage", matchNum: 25, date: "Wed Jun 17", time: "9pm ET",  city: "Kansas City, MO",         stadium: "Arrowhead Stadium",         matchup: "Group J", teams: ["Mexico", "South Africa"] },
+  { id: "gs-26", round: "Group Stage", matchNum: 26, date: "Thu Jun 18", time: "12pm ET", city: "Atlanta, GA",             stadium: "Mercedes-Benz Stadium",     matchup: "Group K", teams: ["Canada", "Qatar"] },
+  { id: "gs-27", round: "Group Stage", matchNum: 27, date: "Thu Jun 18", time: "3pm ET",  city: "Philadelphia, PA",        stadium: "Lincoln Financial Field",   matchup: "Group L", teams: ["Brazil", "Haiti"] },
+  { id: "gs-28", round: "Group Stage", matchNum: 28, date: "Thu Jun 18", time: "6pm ET",  city: "Houston, TX",             stadium: "NRG Stadium",               matchup: "Group A", teams: ["USA", "Australia"] },
+  { id: "gs-29", round: "Group Stage", matchNum: 29, date: "Thu Jun 18", time: "9pm ET",  city: "Toronto, Canada",         stadium: "BMO Field",                 matchup: "Group B", teams: ["Germany", "Côte d'Ivoire"] },
+  { id: "gs-30", round: "Group Stage", matchNum: 30, date: "Fri Jun 19", time: "12pm ET", city: "Vancouver, Canada",       stadium: "BC Place",                  matchup: "Group C", teams: ["Netherlands", "Tunisia"] },
+  { id: "gs-31", round: "Group Stage", matchNum: 31, date: "Fri Jun 19", time: "3pm ET",  city: "Guadalajara, Mexico",     stadium: "Estadio Akron",             matchup: "Group D", teams: ["Belgium", "IR Iran"] },
+  { id: "gs-32", round: "Group Stage", matchNum: 32, date: "Fri Jun 19", time: "6pm ET",  city: "Monterrey, Mexico",       stadium: "Estadio BBVA",              matchup: "Group E", teams: ["Spain", "Saudi Arabia"] },
+  { id: "gs-33", round: "Group Stage", matchNum: 33, date: "Fri Jun 19", time: "9pm ET",  city: "New York/NJ",             stadium: "MetLife Stadium",           matchup: "Group F", teams: ["France", "Senegal"] },
+  { id: "gs-34", round: "Group Stage", matchNum: 34, date: "Sat Jun 20", time: "12pm ET", city: "Los Angeles, CA",         stadium: "Rose Bowl",                 matchup: "Group G", teams: ["Argentina", "Austria"] },
+  { id: "gs-35", round: "Group Stage", matchNum: 35, date: "Sat Jun 20", time: "3pm ET",  city: "Dallas, TX",              stadium: "AT&T Stadium",              matchup: "Group H", teams: ["Portugal", "Uzbekistan"] },
+  { id: "gs-36", round: "Group Stage", matchNum: 36, date: "Sat Jun 20", time: "6pm ET",  city: "San Francisco, CA",       stadium: "Levi's Stadium",            matchup: "Group I", teams: ["England", "Ghana"] },
+  { id: "gs-37", round: "Group Stage", matchNum: 37, date: "Sat Jun 20", time: "9pm ET",  city: "Boston, MA",              stadium: "Gillette Stadium",          matchup: "Group J", teams: ["Korea Republic", "Czechia/Denmark/N.Macedonia/Ireland"] },
+  { id: "gs-38", round: "Group Stage", matchNum: 38, date: "Sun Jun 21", time: "12pm ET", city: "Miami, FL",               stadium: "Hard Rock Stadium",         matchup: "Group K", teams: ["Switzerland", "Bosnia/Italy/N.Ireland/Wales"] },
+  { id: "gs-39", round: "Group Stage", matchNum: 39, date: "Sun Jun 21", time: "3pm ET",  city: "Seattle, WA",             stadium: "Lumen Field",               matchup: "Group L", teams: ["Morocco", "Scotland"] },
+  { id: "gs-40", round: "Group Stage", matchNum: 40, date: "Sun Jun 21", time: "6pm ET",  city: "Kansas City, MO",         stadium: "Arrowhead Stadium",         matchup: "Group A", teams: ["Paraguay", "Kosovo/Romania/Slovakia/Türkiye"] },
+  { id: "gs-41", round: "Group Stage", matchNum: 41, date: "Sun Jun 21", time: "9pm ET",  city: "Atlanta, GA",             stadium: "Mercedes-Benz Stadium",     matchup: "Group B", teams: ["Ecuador", "Curaçao"] },
+  { id: "gs-42", round: "Group Stage", matchNum: 42, date: "Mon Jun 22", time: "12pm ET", city: "Philadelphia, PA",        stadium: "Lincoln Financial Field",   matchup: "Group C", teams: ["Japan", "Albania/Poland/Sweden/Ukraine"] },
+  { id: "gs-43", round: "Group Stage", matchNum: 43, date: "Mon Jun 22", time: "3pm ET",  city: "Houston, TX",             stadium: "NRG Stadium",               matchup: "Group D", teams: ["Egypt", "New Zealand"] },
+  { id: "gs-44", round: "Group Stage", matchNum: 44, date: "Mon Jun 22", time: "6pm ET",  city: "Toronto, Canada",         stadium: "BMO Field",                 matchup: "Group E", teams: ["Uruguay", "Cabo Verde"] },
+  { id: "gs-45", round: "Group Stage", matchNum: 45, date: "Mon Jun 22", time: "9pm ET",  city: "Vancouver, Canada",       stadium: "BC Place",                  matchup: "Group F", teams: ["Norway", "Bolivia/Iraq/Suriname"] },
+  { id: "gs-46", round: "Group Stage", matchNum: 46, date: "Tue Jun 23", time: "12pm ET", city: "Guadalajara, Mexico",     stadium: "Estadio Akron",             matchup: "Group G", teams: ["Algeria", "Jordan"] },
+  { id: "gs-47", round: "Group Stage", matchNum: 47, date: "Tue Jun 23", time: "3pm ET",  city: "Monterrey, Mexico",       stadium: "Estadio BBVA",              matchup: "Group H", teams: ["Colombia", "Congo DR"] },
+  { id: "gs-48", round: "Group Stage", matchNum: 48, date: "Tue Jun 23", time: "6pm ET",  city: "New York/NJ",             stadium: "MetLife Stadium",           matchup: "Group I", teams: ["Croatia", "Panama"] },
+  { id: "gs-49", round: "Group Stage", matchNum: 49, date: "Tue Jun 23", time: "9pm ET",  city: "Los Angeles, CA",         stadium: "SoFi Stadium",              matchup: "Group J", teams: ["Mexico", "Czechia/Denmark/N.Macedonia/Ireland"] },
+  { id: "gs-50", round: "Group Stage", matchNum: 50, date: "Wed Jun 24", time: "12pm ET", city: "Dallas, TX",              stadium: "AT&T Stadium",              matchup: "Group K", teams: ["Canada", "Bosnia/Italy/N.Ireland/Wales"] },
+  { id: "gs-51", round: "Group Stage", matchNum: 51, date: "Wed Jun 24", time: "3pm ET",  city: "San Francisco, CA",       stadium: "Levi's Stadium",            matchup: "Group L", teams: ["Brazil", "Scotland"] },
+  { id: "gs-52", round: "Group Stage", matchNum: 52, date: "Wed Jun 24", time: "6pm ET",  city: "Boston, MA",              stadium: "Gillette Stadium",          matchup: "Group A", teams: ["USA", "Kosovo/Romania/Slovakia/Türkiye"] },
+  { id: "gs-53", round: "Group Stage", matchNum: 53, date: "Wed Jun 24", time: "9pm ET",  city: "Miami, FL",               stadium: "Hard Rock Stadium",         matchup: "Group B", teams: ["Germany", "Curaçao"] },
+  { id: "gs-54", round: "Group Stage", matchNum: 54, date: "Thu Jun 25", time: "12pm ET", city: "Seattle, WA",             stadium: "Lumen Field",               matchup: "Group C", teams: ["Netherlands", "Albania/Poland/Sweden/Ukraine"] },
+  { id: "gs-55", round: "Group Stage", matchNum: 55, date: "Thu Jun 25", time: "3pm ET",  city: "Kansas City, MO",         stadium: "Arrowhead Stadium",         matchup: "Group D", teams: ["Belgium", "New Zealand"] },
+  { id: "gs-56", round: "Group Stage", matchNum: 56, date: "Thu Jun 25", time: "6pm ET",  city: "Atlanta, GA",             stadium: "Mercedes-Benz Stadium",     matchup: "Group E", teams: ["Spain", "Cabo Verde"] },
+  { id: "gs-57", round: "Group Stage", matchNum: 57, date: "Thu Jun 25", time: "9pm ET",  city: "Philadelphia, PA",        stadium: "Lincoln Financial Field",   matchup: "Group F", teams: ["France", "Bolivia/Iraq/Suriname"] },
+  { id: "gs-58", round: "Group Stage", matchNum: 58, date: "Fri Jun 26", time: "12pm ET", city: "Houston, TX",             stadium: "NRG Stadium",               matchup: "Group G", teams: ["Argentina", "Jordan"] },
+  { id: "gs-59", round: "Group Stage", matchNum: 59, date: "Fri Jun 26", time: "3pm ET",  city: "Toronto, Canada",         stadium: "BMO Field",                 matchup: "Group H", teams: ["Portugal", "Congo DR"] },
+  { id: "gs-60", round: "Group Stage", matchNum: 60, date: "Fri Jun 26", time: "6pm ET",  city: "Vancouver, Canada",       stadium: "BC Place",                  matchup: "Group I", teams: ["England", "Panama"] },
+  { id: "gs-61", round: "Group Stage", matchNum: 61, date: "Fri Jun 26", time: "9pm ET",  city: "Guadalajara, Mexico",     stadium: "Estadio Akron",             matchup: "Group J", teams: ["Korea Republic", "South Africa"] },
+  { id: "gs-62", round: "Group Stage", matchNum: 62, date: "Sat Jun 27", time: "12pm ET", city: "Monterrey, Mexico",       stadium: "Estadio BBVA",              matchup: "Group K", teams: ["Switzerland", "Qatar"] },
+  { id: "gs-63", round: "Group Stage", matchNum: 63, date: "Sat Jun 27", time: "3pm ET",  city: "New York/NJ",             stadium: "MetLife Stadium",           matchup: "Group L", teams: ["Morocco", "Haiti"] },
+  { id: "gs-64", round: "Group Stage", matchNum: 64, date: "Sat Jun 27", time: "6pm ET",  city: "Los Angeles, CA",         stadium: "Rose Bowl",                 matchup: "Group A", teams: ["Paraguay", "Australia"] },
+];
+
 // ─── KNOCKOUT VENUE DATA ───────────────────────────────────────────────────────
 const KNOCKOUT_VENUES = [
   // ── ROUND OF 32 ──
@@ -2099,11 +2168,12 @@ const KNOCKOUT_VENUES = [
   { id: "final",  round: "Final",        date: "Sun Jul 19", time: "3pm ET",  city: "New York/New Jersey",  stadium: "MetLife Stadium",          matchup: "Winner SF1 vs Winner SF2",              groups: [] },
 ];
 
-const ROUND_ORDER = ["Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
+const ROUND_ORDER = ["Group Stage", "Round of 32", "Round of 16", "Quarterfinal", "Semifinal", "3rd Place", "Final"];
 
 function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
-  const [openGame,   setOpenGame]   = useState(null);
-  const [cityFilter, setCityFilter] = useState(null);
+  const [openGame,      setOpenGame]      = useState(null);
+  const [cityFilter,    setCityFilter]    = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState("A");
 
   const secRefs = {
     "Round of 32":  useRef(null),
@@ -2177,7 +2247,7 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
     return `${slotLabel(m.t1)} vs ${slotLabel(m.t2)}`;
   };
 
-  const GameCard = ({ game }) => {
+  const GameCard = ({ game, accentColor }) => {
     const isOpen = openGame?.id === game.id;
     const cardTeams = getPossibleTeams(game);
     const cardQ = encodeURIComponent(`FIFA World Cup 2026 ${game.city}`);
@@ -2185,9 +2255,9 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
     const top4 = r32match ? getTopMatchups(r32match, 4) : [];
     return (
       <div key={game.id}
-        style={{ background: isOpen ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.15s, background 0.15s, transform 0.15s", cursor: "pointer", gridColumn: isOpen ? "1 / -1" : "auto" }}
-        onMouseEnter={e => { if (!isOpen) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; }}}
-        onMouseLeave={e => { if (!isOpen) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}}
+        style={{ background: isOpen ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)", border: `2px solid ${isOpen ? (accentColor || "rgba(255,255,255,0.4)") : (accentColor ? accentColor + "55" : "rgba(255,255,255,0.1)")}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.15s, background 0.15s, transform 0.15s", cursor: "pointer", gridColumn: isOpen ? "1 / -1" : "auto" }}
+        onMouseEnter={e => { if (!isOpen) { e.currentTarget.style.borderColor = accentColor ? accentColor + "99" : "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; }}}
+        onMouseLeave={e => { if (!isOpen) { e.currentTarget.style.borderColor = accentColor ? accentColor + "55" : "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}}
       >
         <div onClick={() => setOpenGame(isOpen ? null : game)}
           style={{ padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s", minHeight: 52 }}
@@ -2196,7 +2266,9 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden" }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#e0e0e0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{game.city}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: accentColor || "#e0e0e0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
+                {accentColor ? game.round : game.city}
+              </div>
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap", flexShrink: 0 }}>· {game.date}</span>
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 1, display: "flex", gap: 6, overflow: "hidden" }}>
@@ -2210,6 +2282,23 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
           <div style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
             {game.r32id && getMatchupLabel(game) && (
               <div style={{ paddingTop: 14, fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>📋 {getMatchupLabel(game)}</div>
+            )}
+            {!game.r32id && game.matchup && (
+              <div style={{ paddingTop: 14, fontSize: 12, color: "#8fa8c0", fontWeight: 600 }}>📋 {game.matchup}</div>
+            )}
+            {/* Group stage teams — derive from group letter */}
+            {game.round === "Group Stage" && game.teams && (
+              <div style={{ paddingTop: game.matchup ? 0 : 14, display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+                  <Flag name={game.teams[0]} size={16} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e0e0e0" }}>{game.teams[0]}</span>
+                </div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>vs</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, justifyContent: "flex-end" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e0e0e0" }}>{game.teams[1]}</span>
+                  <Flag name={game.teams[1]} size={16} />
+                </div>
+              </div>
             )}
             {top4.length > 0 && (
               <div>
@@ -2261,13 +2350,16 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
   };
 
   const roundColors = {
-    "Round of 32": "#FFD700", "Round of 16": "#378ADD",
+    "Group Stage": "#a78bfa", "Round of 32": "#FFD700", "Round of 16": "#378ADD",
     "Quarterfinal": "#1D9E75", "Semifinal": "#EF9F27",
     "3rd Place": "#cd7f32", "Final": "#E24B4A",
   };
-  const roundTeams = { "Round of 32": 32, "Round of 16": 16, "Quarterfinal": 8, "Semifinal": 4, "3rd Place": 4, "Final": 2 };
+  const roundTeams = { "Group Stage": 48, "Round of 32": 32, "Round of 16": 16, "Quarterfinal": 8, "Semifinal": 4, "3rd Place": 4, "Final": 2 };
 
-  const cityGames = cityFilter ? KNOCKOUT_VENUES.filter(g => cityMatches(g.city, cityFilter)) : null;
+  const cityGames = cityFilter ? [
+    ...GROUP_STAGE_VENUES.filter(g => cityMatches(g.city, cityFilter)),
+    ...KNOCKOUT_VENUES.filter(g => cityMatches(g.city, cityFilter)),
+  ] : null;
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 14px 60px" }}>
@@ -2284,7 +2376,10 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
             <button onClick={() => { setCityFilter(null); setOpenGame(null); }} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "3px 10px", cursor: "pointer" }}>✕ clear</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
-            {cityGames.map(game => <GameCard key={game.id} game={game} />)}
+            {cityGames.map(game => {
+              const c = roundColors[game.round];
+              return <GameCard key={game.id} game={game} accentColor={c} />;
+            })}
           </div>
         </>
       ) : (
@@ -2306,11 +2401,57 @@ function VenueExplorer({ onSelectTeam, initialCity, onCityHandled }) {
             })}
           </div>
 
-          {/* All rounds continuous */}
           {ROUND_ORDER.map((round, ri) => {
-            const games = KNOCKOUT_VENUES.filter(g => g.round === round);
             const color = roundColors[round] || "#FFD700";
             const teams = roundTeams[round] || "";
+
+            if (round === "Group Stage") {
+              const groupLetters = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+              const groupGames = GROUP_STAGE_VENUES.filter(g => {
+                // match group letter from matchup field e.g. "Group A"
+                return g.matchup && g.matchup.includes(`Group ${selectedGroup}`);
+              });
+              return (
+                <div key={round}>
+                  <div ref={secRefs[round]} style={{ display: "flex", alignItems: "center", margin: "0 0 14px" }}>
+                    <div style={{ flex: 1, height: "2px", background: color + "66" }} />
+                    <div style={{ borderRadius: 24, border: `2px solid ${color}`, padding: "6px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, background: "transparent", margin: "0 12px" }}>
+                      <span style={{ fontSize: 14, fontWeight: 900, color, letterSpacing: "0.1em", textTransform: "uppercase" }}>{round}</span>
+                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>48 teams · 64 matches</span>
+                    </div>
+                    <div style={{ flex: 1, height: "2px", background: color + "66" }} />
+                  </div>
+                  {/* Group sub-tabs */}
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 14 }}>
+                    {groupLetters.map(g => {
+                      const active = selectedGroup === g;
+                      const grpTeams = GROUPS[g]?.teams || [];
+                      return (
+                        <button key={g} onClick={() => { setSelectedGroup(g); setOpenGame(null); }}
+                          style={{ padding: "5px 12px", borderRadius: 7, border: `1px solid ${active ? color : "rgba(255,255,255,0.12)"}`, background: active ? color + "22" : "rgba(255,255,255,0.03)", color: active ? color : "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 11, cursor: "pointer", transition: "all 0.15s", textTransform: "uppercase", letterSpacing: "0.06em" }}
+                          onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = color + "66"; e.currentTarget.style.color = color; e.currentTarget.style.background = color + "11"; }}}
+                          onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}}
+                        >Group {g}</button>
+                      );
+                    })}
+                  </div>
+                  {/* Selected group teams */}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+                    {(GROUPS[selectedGroup]?.teams || []).map(t => (
+                      <div key={t} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+                        <Flag name={t} size={12} />{t}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Group stage match cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8, marginBottom: 28 }}>
+                    {groupGames.map(game => <GameCard key={game.id} game={game} />)}
+                  </div>
+                </div>
+              );
+            }
+
+            const games = KNOCKOUT_VENUES.filter(g => g.round === round);
             return (
               <div key={round}>
                 {/* Round divider */}
