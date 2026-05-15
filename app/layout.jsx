@@ -1,3 +1,5 @@
+import { Analytics } from '@vercel/analytics/next';
+
 export const metadata = {
   title: "2026 World Cup Path Simulator",
   description: "Map out your team's path to the 2026 World Cup final. Explore every possible knockout matchup by team or venue across the US, Canada and Mexico.",
@@ -13,6 +15,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body style={{ margin: 0, padding: 0, background: "#050508" }}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
